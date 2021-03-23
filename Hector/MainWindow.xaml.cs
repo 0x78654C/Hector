@@ -212,14 +212,28 @@ namespace Hector
 
         }
 
-
-
-
-
+        /// <summary>
+        /// On user joined event 
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
         private Task client_UserJoined(SocketGuildUser arg)
         {
-            arg.SendMessageAsync("Welcome to my discord server ;). Let's have some fun and help weach other. Keept it cool and be nice to others! ;)");
+            try
+            {
+                arg.SendMessageAsync("Welcome to my discord server ;). Let's have some fun and help weach other. Keept it cool and be nice to others! ;)");
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                logWrite("[" + date + "][BOT] " + arg.Username + " has joined the channel!");
+                CLog.LogWrite("[" + date + "][BOT] " + arg.Username + " has joined the channel!");
+                return Task.CompletedTask;
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWrite("[" + date + "] User Joined Error: "+e.ToString());
+            }
             return Task.CompletedTask;
+
         }
 
         /// <summary>
@@ -233,20 +247,20 @@ namespace Hector
 
             try
             {
-               
-
 
                 if (m.Content != null && m.Content.StartsWith("!hector"))
                 {
                     logWrite(m.Author.ToString() + ": " + m.Content);
-
                     await arg.Channel.SendMessageAsync("I'm your bot that will be made by your ideeas ;)", false, null);
-
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[BOT]: I'm your bot that will be made by your ideeas ;)");
+                    CLog.LogWrite("[" + date + "][BOT]: I'm your bot that will be made by your ideeas ;)");
                 }
             }
             catch (Exception e)
             {
-                CLog.LogWriteError("Error - hector Command: " + e.ToString());
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - hector Command: " + e.ToString());
             }
 
         }
