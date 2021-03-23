@@ -6,7 +6,7 @@
         xmlns:adorners="http://gu.se/Adorners"
         xmlns:local="clr-namespace:Hector"
         mc:Ignorable="d"
-        Title="Settings" Height="215.713" Width="344.455" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Visibility="Visible" MouseDown="Window_MouseDown" AllowsTransparency="True" WindowStyle="None">
+        Title="Settings" Height="245.713" Width="344.455" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Visibility="Visible" MouseDown="Window_MouseDown" AllowsTransparency="True" WindowStyle="None">
     <Window.Resources>
         <Style x:Key="MyWaterMarkStyle" TargetType="{x:Type TextBox}">
             <Setter Property="Template">
@@ -76,7 +76,16 @@
                     </Style>
                 </adorners:Watermark.TextStyle>
             </PasswordBox>
-            <Button Name="saveBTN" Style="{DynamicResource RoundCorner2}" Content="Save" HorizontalAlignment="Center" Margin="120,139,129,0" VerticalAlignment="Top" Width="94" Height="37" Foreground="#FFE1DDEE" Click="saveBTN_Click"/>
+            <Button Name="saveBTN" Style="{DynamicResource RoundCorner2}" Content="Save" HorizontalAlignment="Center" Margin="120,179,129,0" VerticalAlignment="Top" Width="94" Height="37" Foreground="#FFE1DDEE" Click="saveBTN_Click"/>
+            <PasswordBox Background="#54515c" Foreground="#bfbec2" FontSize="14"  adorners:Watermark.Text ="OpenWeatherMap API Key" x:Name="weatherTXT" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Height="32" Margin="41,120,0,0"  VerticalAlignment="Top" Width="255"  >
+                <adorners:Watermark.TextStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Opacity" Value="0.5" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                    </Style>
+                </adorners:Watermark.TextStyle>
+            </PasswordBox>
 
         </Grid>
 

@@ -24,10 +24,16 @@ namespace Hector
         //Declare global variables
         private static string keyName = "Hector";
         private static string d_Token;
+        private static string apiKey;
+        //----------------------------
+
+
         public settings()
         {
             InitializeComponent();
-
+            //read registry values
+            apiKey = Reg.regKey_Read(keyName, "WeatherAPIKey");
+            weatherTXT.Password = Encryption._decryptData(apiKey);
             try
             {
 
@@ -38,7 +44,7 @@ namespace Hector
             {
                 CLog.LogWriteError("Settigns - decrypt oAuth Key: " + e.ToString());
             }
-
+            //------------------------------
         }
         /// <summary>
         /// Drag window with mouse
@@ -77,16 +83,31 @@ namespace Hector
         /// <param name="e"></param>
         private void saveBTN_Click(object sender, RoutedEventArgs e)
         {
+            //store Discord bot Token in regsitry
             if (d_TokenTXT.Password != "")
             {
                 Reg.regKey_WriteSubkey(keyName, "d_Token", Encryption._encryptData(d_TokenTXT.Password));
-                MessageBox.Show("Your Discord Token was saved!");
-                this.Close();
+
             }
             else
             {
                 MessageBox.Show("Please add the Discord Token!");
             }
+            //--------------------------------
+
+            //sotre weather API key in regkey
+            if (weatherTXT.Password != "")
+            {
+                Reg.regKey_WriteSubkey(keyName, "WeatherAPIKey", Encryption._encryptData(weatherTXT.Password));
+            }
+            else
+            {
+                Reg.regKey_WriteSubkey(keyName, "WeatherAPIKey", weatherTXT.Password);
+            }
+            //--------------------------------
+
+            MessageBox.Show("Your settings are saved!");
+            this.Close();
         }
     }
 }

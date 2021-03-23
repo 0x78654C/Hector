@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Remoting.Contexts;
 using System.Text;
@@ -67,6 +68,12 @@ namespace Hector
         System.Windows.Threading.DispatcherTimer dispatcherTimer;
         //--------------------------------
 
+        //declare weather event variables
+        private static string weatherUnits = "1";
+        private static string apiKey;
+        static readonly HttpClient clientH = new HttpClient();
+        //--------------------------------
+
         private static string menuStatus = "0";
         public MainWindow()
         {
@@ -110,10 +117,16 @@ namespace Hector
             {
                 Reg.regKey_CreateKey(keyName, "d_Token", "0");
             }
+
+            if (Reg.regKey_Read(keyName, "WeatherAPIKey") == "")
+            {
+                Reg.regKey_CreateKey(keyName, "WeatherAPIKey", "");
+            }
             //--------------------------------
 
             //read variables values from registry
             menuStatus = Reg.regKey_Read(keyName, "menuStatus");
+            apiKey = Reg.regKey_Read(keyName, "WeatherAPIKey");
             try
             {
 
@@ -260,9 +273,10 @@ namespace Hector
                 if (m.Content != null && m.Content.StartsWith("!help"))
                 {
                     string commands = @"
-List of commands:
- !botname - Shows the one who gave the name of this bot!
- !hector - Displays something about this bot!
+**__List of commands__**:
+ ****!botname**** - `Shows the one who gave the name of this bot!`
+ ****!hector**** - `Displays something about this bot!`
+ ****!weather**** - `Displays the weather from a specific City. Example: !weather cityname`
 ";
                     logWrite(m.Author.ToString() + ": " + m.Content);
                     await arg.Channel.SendMessageAsync(commands, false, null);
@@ -317,6 +331,34 @@ List of commands:
                 CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
             }
             //--------------------------------------------
+
+            //!weather command
+            try
+            {
+
+                if (m.Content != null && m.Content.StartsWith("!weather"))
+                {
+                    string[] cmd = m.Content.Split(' ');
+                    if (cmd[1].Length > 0)
+                    {
+                        logWrite(m.Author.ToString() + ": " + m.Content);
+                        await arg.Channel.SendMessageAsync("The weather in ****" + cmd[1] + "**** is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + Environment.NewLine + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]), false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine +"****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) +Environment.NewLine+"****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
+                        CLog.LogWrite("[" + date + "][BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
+                    }
+                    else
+                    {
+                        await arg.Channel.SendMessageAsync("Oups! Please specify the City name for weather command. Example: !weather cityname", false, null);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
+            }
+            //--------------------------------------------
         }
 
         private Task Log(LogMessage msg)
@@ -341,6 +383,7 @@ List of commands:
         private void RegVarLoad(object sender, EventArgs e)
         {
             menuStatus = Reg.regKey_Read(keyName, "menuStatus");
+            apiKey = Reg.regKey_Read(keyName, "WeatherAPIKey");
             try
             {
 
@@ -561,5 +604,201 @@ List of commands:
             botActivate();
         }
 
+        /// <summary>
+        /// weather(celsius) api check and return the output parssed
+        /// </summary>
+        /// <param name="CityName"></param>
+        /// <returns></returns>
+        private string weatherForecastMetric(string CityName)
+        {
+
+            string _date = DateTime.Now.ToString("yyyy_MM_dd");
+            string date2 = string.Empty;
+            string errFile = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\log\errors\" + _date + "_log.txt";
+            string outs = string.Empty;
+            try
+            {
+
+                if (apiKey.Length > 0) // we check the lenght
+                {
+                    
+                    string html = @"https://api.openweathermap.org/data/2.5/weather?q={0}&appid={1}&units=metric";
+
+                    HttpResponseMessage response = clientH.GetAsync(string.Format(html, CityName, Encryption._decryptData(apiKey))).GetAwaiter().GetResult();
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = response.Content.ReadAsStringAsync().Result;
+
+                    string l = "";
+                    string line = "";
+                    //parssing the oudtput
+                    responseBody = responseBody.Replace(",", Environment.NewLine);
+                    responseBody = responseBody.Replace("\"", "");
+                    responseBody = responseBody.Replace("}", "");
+                    responseBody = responseBody.Replace("{", "");
+                    responseBody = responseBody.Replace("wind:", "");
+                    responseBody = responseBody.Replace("main:", "");
+                    //---------------------------------
+                    using (var sr = new StringReader(responseBody))
+                    {
+                        while ((line = sr.ReadLine()) != null)
+                        {
+
+                            //we check only for what we need, like: temp, feel, humidity, wind speed
+                            if (line.Contains("temp") || line.Contains("feel") || line.Contains("humidity") || line.Contains("speed"))
+                            {
+                                l += line + Environment.NewLine;
+                            }
+                        }
+                    }
+                    outs = l;
+                    //renaming output parts
+                    outs = outs.Replace("temp:", " Temperature: ");
+                    outs = outs.Replace("feels_like:", " Feels Like: ");
+                    outs = outs.Replace("temp_min:", " Minim Temperature: ");
+                    outs = outs.Replace("temp_max:", " Maxim Temperature: ");
+                    outs = outs.Replace("humidity:", " Humidity: ");
+                    outs = outs.Replace("speed:", " Wind Speed: ");
+                    //---------------------------------
+                }
+                else
+                {
+                    //we print the issue on the log viewer console
+                    logWrite("No openweathermap.org API Key saved! Please check" + Environment.NewLine);
+                }
+            }
+            catch (Exception e)
+            {
+                //In case of error we output this in console.
+                outs = "Please check city name!";
+
+                //save the entire error to file
+                date2 = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+
+                if (File.Exists(errFile))
+                {
+                    string rErrorFile = File.ReadAllText(errFile);
+
+                    if (!rErrorFile.Contains("[" + date2 + "] Weather error: "))
+                    {
+                        CLog.LogWriteError("[" + date2 + "] Weather error: " + e.ToString() + Environment.NewLine);
+                    }
+                }
+                else
+                {
+                    File.WriteAllText(errFile, "");
+                    string rErrorFile = File.ReadAllText(errFile);
+
+                    if (!rErrorFile.Contains("[" + date2 + "] Weather error: "))
+                    {
+                        CLog.LogWriteError("[" + date2 + "] Weather error: " + e.ToString() + Environment.NewLine);
+                    }
+                }
+                //--------------------------------
+
+            }
+
+            //print the final weather forecast
+            return outs;
+
+        }
+
+        /// <summary>
+        /// weather(imperial) api check and return the output parssed
+        /// </summary>
+        /// <param name="CityName"></param>
+        /// <returns></returns>
+        private string weatherForecastImperial(string CityName)
+        {
+
+            string _date = DateTime.Now.ToString("yyyy_MM_dd");
+            string date2 = string.Empty;
+            string errFile = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\log\errors\" + _date + "_log.txt";
+            string outs = string.Empty;
+            try
+            {
+
+                if (apiKey.Length > 0) // we check the lenght
+                {
+          
+                   string html = @"https://api.openweathermap.org/data/2.5/weather?q={0}&appid={1}&units=imperial";
+                    
+
+                    HttpResponseMessage response = clientH.GetAsync(string.Format(html, CityName, Encryption._decryptData(apiKey))).GetAwaiter().GetResult();
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = response.Content.ReadAsStringAsync().Result;
+
+                    string l = "";
+                    string line = "";
+                    //parssing the oudtput
+                    responseBody = responseBody.Replace(",", Environment.NewLine);
+                    responseBody = responseBody.Replace("\"", "");
+                    responseBody = responseBody.Replace("}", "");
+                    responseBody = responseBody.Replace("{", "");
+                    responseBody = responseBody.Replace("wind:", "");
+                    responseBody = responseBody.Replace("main:", "");
+                    //---------------------------------
+                    using (var sr = new StringReader(responseBody))
+                    {
+                        while ((line = sr.ReadLine()) != null)
+                        {
+
+                            //we check only for what we need, like: temp, feel, humidity, wind speed
+                            if (line.Contains("temp") || line.Contains("feel") || line.Contains("humidity") || line.Contains("speed"))
+                            {
+                                l += line + Environment.NewLine;
+                            }
+                        }
+                    }
+                    outs = l;
+                    //renaming output parts
+                    outs = outs.Replace("temp:", " Temperature: ");
+                    outs = outs.Replace("feels_like:", " Feels Like: ");
+                    outs = outs.Replace("temp_min:", " Minim Temperature: ");
+                    outs = outs.Replace("temp_max:", " Maxim Temperature: ");
+                    outs = outs.Replace("humidity:", " Humidity: ");
+                    outs = outs.Replace("speed:", " Wind Speed: ");
+                    //---------------------------------
+                }
+                else
+                {
+                    //we print the issue on the log viewer console
+                    logWrite("No openweathermap.org API Key saved! Please check" + Environment.NewLine);
+                }
+            }
+            catch (Exception e)
+            {
+                //In case of error we output this in console.
+                outs = "Please check city name!";
+
+                //save the entire error to file
+                date2 = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+
+                if (File.Exists(errFile))
+                {
+                    string rErrorFile = File.ReadAllText(errFile);
+
+                    if (!rErrorFile.Contains("[" + date2 + "] Weather error: "))
+                    {
+                        CLog.LogWriteError("[" + date2 + "] Weather error: " + e.ToString() + Environment.NewLine);
+                    }
+                }
+                else
+                {
+                    File.WriteAllText(errFile, "");
+                    string rErrorFile = File.ReadAllText(errFile);
+
+                    if (!rErrorFile.Contains("[" + date2 + "] Weather error: "))
+                    {
+                        CLog.LogWriteError("[" + date2 + "] Weather error: " + e.ToString() + Environment.NewLine);
+                    }
+                }
+                //--------------------------------
+
+            }
+
+            //print the final weather forecast
+            return outs;
+
+        }
     }
 }
