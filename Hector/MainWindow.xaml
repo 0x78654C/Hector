@@ -3,10 +3,140 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:Hector"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        Name="Hector"
+        Title="Hector" Height="683.594" Width="1008.808" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Visibility="Visible" MouseDown="Window_MouseDown" AllowsTransparency="True" WindowStyle="None" Closed="Window_Closed" >
+
+    <Window.Resources>
+        <Storyboard x:Key="menuOpen">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="GridMenu">
+                <EasingDoubleKeyFrame KeyTime="0" Value="50"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="199"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="menuClose">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Width)" Storyboard.TargetName="GridMenu">
+                <EasingDoubleKeyFrame KeyTime="0" Value="199"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="50"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <Style x:Key="MyWaterMarkStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+
+                        <Grid>
+                            <Border Background="White" BorderBrush="#FF7D8683" BorderThickness="1" CornerRadius="10"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="5,0,0,0" VerticalAlignment="Center" />
+                            <Label Margin="5,0,0,0" x:Name="WaterMarkLabel" Content="{TemplateBinding Tag}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Visibility="Collapsed" Foreground="Gray" FontFamily="Arial"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Text" Value=""/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Visibility" TargetName="WaterMarkLabel" Value="Visible"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="DimGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="TextBoxBaseControlTemplate" TargetType="{x:Type TextBoxBase}">
+            <Border Background="{TemplateBinding Background}" 
+                x:Name="Bd" BorderBrush="Black"
+                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                <ScrollViewer x:Name="PART_ContentHost"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" TargetName="Bd"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="Width" Value="Auto">
+                    <Setter Property="MinWidth" Value="100"/>
+                </Trigger>
+                <Trigger Property="Height" Value="Auto">
+                    <Setter Property="MinHeight" Value="20"/>
+                </Trigger>
+
+            </ControlTemplate.Triggers>
+
+        </ControlTemplate>
+
+    </Window.Resources>
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="btnOpenMenu">
+            <BeginStoryboard Storyboard="{StaticResource menuOpen}"/>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="ButtonBase.Click" SourceName="btnCloseMenu">
+            <BeginStoryboard Storyboard="{StaticResource menuClose}"/>
+        </EventTrigger>
+    </Window.Triggers>
+    <Window.Background>
+        <SolidColorBrush Color="Gainsboro" Opacity="0"/>
+    </Window.Background>
+    <Border BorderThickness="1,1,1,1" Background="White" BorderBrush="Black">
+
+        <Grid RenderTransformOrigin="0.819,0.497" Margin="0,0,0,0" Background="#343336">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="0*"/>
+            </Grid.ColumnDefinitions>
+            <RichTextBox Background="#343336" Foreground="#bfbec2" Name="logViewRTB" IsReadOnly="True" HorizontalAlignment="Left" Height="632" Margin="50,50,0,0" VerticalAlignment="Top" Width="957" FontSize="16">
+                <FlowDocument>
+                    <Paragraph>
+                        <Run Text=""/>
+                    </Paragraph>
+                </FlowDocument>
+            </RichTextBox>
+
+
+            <Grid VerticalAlignment="Top" Height="50" Background="#4a3666" >
+                <TextBlock Text="Hector - Discord Bot"  TextAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="22" Margin="399,8,345,12" Width="263"></TextBlock>
+                <StackPanel VerticalAlignment="Center">
+                    <materialDesign:PopupBox Foreground="White" HorizontalAlignment="Right"  Margin="9" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False">
+                        <StackPanel Width="150" Background="#FFE1DDE2">
+                            <Button Content="About" FontSize="18" Click="aboutBTN_Click"/>
+                            <Separator/>
+                            <Button Content="Exit" FontSize="18" Click="closeBTN_Click"/>
+                        </StackPanel>
+                    </materialDesign:PopupBox>
+                </StackPanel>
+                <Label Name="miniMizeLBL" Content="_" PreviewMouseDown="miniMizeLBL_PreviewMouseDown" FontSize="25" Foreground="#FFE1DDE2" HorizontalAlignment="Left" Margin="942,-3,0,0" VerticalAlignment="Top"/>
+                <materialDesign:PackIcon Kind="Discord" Margin="392,8,0,0" Width="37" Height="36" Foreground="#FFE1DDE2" RenderTransformOrigin="1.547,0.52"/>
+
+            </Grid>
+            <Grid x:Name="GridMenu" HorizontalAlignment="Left"  Width="50" Background="#3b2559" >
+                <StackPanel>
+                    <Grid Height="50" Background="#FFE1DDE2">
+                        <Button x:Name="btnCloseMenu" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" Background="Transparent" Height="30" Width="30" VerticalAlignment="top" HorizontalAlignment="Right" Click="btnCloseMenu_Click" Visibility="Collapsed">
+                            <materialDesign:PackIcon ToolTip="Close Menu" Background="#FFE1DDE2" Foreground="Black" Kind="ArrowLeft" Height="25" Width="25"/>
+                        </Button>
+                        <Button x:Name="btnOpenMenu" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"  Background="Transparent" Height="50" Width="50" VerticalAlignment="top" HorizontalAlignment="Center" Click="btnOpenMenu_Click">
+                            <materialDesign:PackIcon ToolTip="Open Menu" Background="#FFE1DDE2" Foreground="Black" Kind="Menu" Height="25" Width="25"/>
+                        </Button>
+                    </Grid>
+                    <ListViewItem ToolTip="Settings" Height="44" Foreground="#FFDCDCDC" FontSize="23" PreviewMouseDown="ListViewItem_PreviewMouseDown">
+                        <StackPanel Orientation="Horizontal" >
+                            <materialDesign:PackIcon Kind="Settings" Margin="9" Width="25" Height="25" VerticalAlignment="Center"/>
+                            <TextBlock Text=" Settings" VerticalAlignment="Center"/>
+
+                        </StackPanel>
+                    </ListViewItem>
+
+                </StackPanel>
+                <Button Style="{DynamicResource StartButton}" Name="startBotBTN" Content="START" HorizontalAlignment="Left" Margin="44,517,0,0" VerticalAlignment="Top" Width="110" Height="106" Click="startBTN_Click" Foreground="#FFE2DBDB" FontSize="18"/>
+                <Image HorizontalAlignment="Left" Name="statIMG" Height="22" Margin="14,650,0,0" VerticalAlignment="Top" Width="22" RenderTransformOrigin="0.81,-0.455" Source="pack://siteoforigin:,,,/Resources/red_dot.png" PreviewMouseDown="statIMG_PreviewMouseDown"/>
+
+            </Grid>
+
+        </Grid>
+    </Border>
 </Window>

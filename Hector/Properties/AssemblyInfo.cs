@@ -7,8 +7,8 @@ using System.Windows;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Hector")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Hector - Discord Bot")]
+[assembly: AssemblyDescription("A simple Discord bot made on C#")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Hector")]
