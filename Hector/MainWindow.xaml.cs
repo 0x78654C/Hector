@@ -164,12 +164,21 @@ namespace Hector
             //----------------------------------
         }
 
-
+        /// <summary>
+        /// Function for background worker that calls the MainAsync
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BotConnect(object sender, DoWorkEventArgs e)
         {
             this.MainAsync().GetAwaiter().GetResult();
 
         }
+
+        /// <summary>
+        /// Main function for dicord bot accont to connect
+        /// </summary>
+        /// <returns></returns>
         public async Task MainAsync()
         {
 
@@ -244,7 +253,32 @@ namespace Hector
         private async Task client_MessageReceived(SocketMessage arg)
         {
             var m = arg as SocketUserMessage;
+            //!help command
+            try
+            {
 
+                if (m.Content != null && m.Content.StartsWith("!help"))
+                {
+                    string commands = @"
+List of commands:
+ !botname - Shows the one who gave the name of this bot!
+ !hector - Displays something about this bot!
+";
+                    logWrite(m.Author.ToString() + ": " + m.Content);
+                    await arg.Channel.SendMessageAsync(commands, false, null);
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[BOT]: "+commands);
+                    CLog.LogWrite("[" + date + "][BOT]: "+commands);
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - hector Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!hecktor command
             try
             {
 
@@ -262,7 +296,27 @@ namespace Hector
                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                 CLog.LogWriteError("[" + date + "]Error - hector Command: " + e.ToString());
             }
+            //--------------------------------------------
 
+            //!botname command
+            try
+            {
+
+                if (m.Content != null && m.Content.StartsWith("!botname"))
+                {
+                    logWrite(m.Author.ToString() + ": " + m.Content);
+                    await arg.Channel.SendMessageAsync("Thank you yanniboi for this name :* ;)", false, null);
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[BOT]: Thank you yanniboi for this name :* ;)");
+                    CLog.LogWrite("[" + date + "][BOT]: Thank you yanniboi for this name :* ;)");
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
+            }
+            //--------------------------------------------
         }
 
         private Task Log(LogMessage msg)
