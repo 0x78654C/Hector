@@ -1,7 +1,7 @@
 # Hector 
-<p align="center">
+
 ![alt text](https://github.com/0x78654C/Hector/blob/main/Hector/Resources/hector_2.png?raw=true)
-</p>
+
  
 Hector - A Discord bot in csharp WPF made from ideas from all my friends. Even the name is choosen by them ;).
 
