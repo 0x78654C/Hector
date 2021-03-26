@@ -73,7 +73,7 @@ namespace Hector
         //declare variables for YanniBoi point system and ranking
         readonly static string user_Points = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\data\user_points.txt";
         readonly static string user_DateHistory = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\data\user_DateHistory.txt";
-        private static string _pDate;
+        //private static string _pDate; //-disabled for future work
         //--------------------------------
 
         //menu status string control declaration
@@ -661,20 +661,57 @@ namespace Hector
                     if (m.Content.Contains(" "))
                     {
                         string[] mu = m.Content.Split(' ');
-                        if (mu[1] != null)
+                        if (mu[0] == "!r")
                         {
-                            string b = string.Empty;
+                            if (mu[1] != null)
+                            {
+                                string b = string.Empty;
 
-                            for (int i = 0; i < mu[1].Length; i++)
-                            {
-                                if (Char.IsDigit(mu[1][i]))
-                                    b += mu[1][i];
+                                for (int i = 0; i < mu[1].Length; i++)
+                                {
+                                    if (Char.IsDigit(mu[1][i]))
+                                        b += mu[1][i];
+                                }
+                                try
+                                {
+                                    string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                                    string[] u = eUser.Split('#');
+                                    string mUser = u[0];
+
+
+
+                                    string user = string.Empty;
+
+                                    foreach (var line in rUserPointsLines)
+                                    {
+
+                                        if (line.Contains(mUser))
+                                        {
+                                            string[] rank = line.Split('|');
+
+                                            user = "****" + rank[0] + "****, has ****" + rank[1] + "**** Yanni points!";
+                                        }
+
+                                    }
+
+                                    if (!rUserPints.Contains(mUser))
+                                    {
+                                        user = "****" + mUser + "****, has ****0**** Yanni points!";
+                                    }
+
+                                    await arg.Channel.SendMessageAsync(user, false, null);
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT]: " + user);
+                                    CLog.LogWrite("[" + date + "][BOT]: " + user);
+                                }
+                                catch (Exception ex)
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    CLog.LogWriteError("[" + date + "]Error - rank Command: " + ex.ToString());
+                                }
                             }
-                            try
+                            else
                             {
-                                string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
-                                string[] u = eUser.Split('#');
-                                string mUser = u[0];
 
 
 
@@ -683,18 +720,18 @@ namespace Hector
                                 foreach (var line in rUserPointsLines)
                                 {
 
-                                    if (line.Contains(mUser))
+                                    if (line.Contains(m.Author.Username))
                                     {
                                         string[] rank = line.Split('|');
 
-                                        user = "****" + rank[0] + "****, has ****" + rank[1] + "**** Yanni points!";
+                                        user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
                                     }
 
-                                }
 
-                                if (!rUserPints.Contains(mUser))
+                                }
+                                if (!rUserPints.Contains(m.Author.Username))
                                 {
-                                    user = "****" + mUser + "****, has ****0**** Yanni points!";
+                                    user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
                                 }
 
                                 await arg.Channel.SendMessageAsync(user, false, null);
@@ -702,40 +739,13 @@ namespace Hector
                                 logWrite("[" + date + "][BOT]: " + user);
                                 CLog.LogWrite("[" + date + "][BOT]: " + user);
                             }
-                            catch (Exception ex)
-                            {
-                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                CLog.LogWriteError("[" + date + "]Error - rank Command: " + ex.ToString());
-                            }
                         }
                         else
                         {
-
-
-
-                            string user = string.Empty;
-
-                            foreach (var line in rUserPointsLines)
-                            {
-
-                                if (line.Contains(m.Author.Username))
-                                {
-                                    string[] rank = line.Split('|');
-
-                                    user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
-                                }
-
-
-                            }
-                            if (!rUserPints.Contains(m.Author.Username))
-                            {
-                                user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
-                            }
-
-                            await arg.Channel.SendMessageAsync(user, false, null);
+                            await arg.Channel.SendMessageAsync("The command for Yanni points rank must start with !r", false, null);
                             date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                            logWrite("[" + date + "][BOT]: " + user);
-                            CLog.LogWrite("[" + date + "][BOT]: " + user);
+                            logWrite("[" + date + "][BOT]: The command for Yanni points rank must start with!r");
+                            CLog.LogWrite("[" + date + "][BOT]: The command for Yanni points rank must start with!r");
                         }
                     }
                     else
