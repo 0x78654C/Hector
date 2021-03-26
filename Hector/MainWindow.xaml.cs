@@ -80,6 +80,11 @@ namespace Hector
         private static string menuStatus = "0";
         //--------------------------------
 
+        //declare variables fro 8Ball game by CodingWithScott
+        readonly static string ballAnswer = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\data\8ball_answers.txt";
+        Random r = new Random();
+        //--------------------------------
+
         public MainWindow()
         {
             InitializeComponent();
@@ -115,7 +120,7 @@ namespace Hector
             //point system files autocreate
             if (!File.Exists(user_Points))
             {
-                File.Create(user_Points);
+                File.WriteAllText(user_Points,"test|0");
             }
 
             if (!File.Exists(user_DateHistory))
@@ -124,6 +129,12 @@ namespace Hector
             }
             //------------------------------------------------
 
+            //8Ball system file autocreate
+            if (!File.Exists(ballAnswer))
+            {
+                File.Create(ballAnswer);
+            }
+            //------------------------------------------------
             //we check if regisrty variables exists and if not we create
             if (Reg.regKey_Read(keyName, "menuStatus") == "")
             {
@@ -304,6 +315,7 @@ namespace Hector
  ****!-- **** - `Removes Yanni points to user. Example: !-- @username`
  ****!r **** - `Shows how many Yanni points has an user. Example: !r @username or just !r for self points!`
  ****!t10 **** - `Display the Top 10 users with Yanni points`
+ ****!8ball **** - `Magic 8Ball game. Ex: !8ball Should I get a car?`
 ";
                     logWrite(m.Author.ToString() + ": " + m.Content);
                     await arg.Channel.SendMessageAsync(commands, false, null);
@@ -808,6 +820,64 @@ namespace Hector
                 CLog.LogWriteError("[" + date + "]Error - rank Command: " + e.ToString());
             }
             //--------------------------------------------
+            #endregion
+
+            #region 8Ball by CodingWithScott
+            //!8ball command
+            try
+            {
+
+                if (m.Content != null && m.Content.StartsWith("!8ball"))
+                {
+                    if (m.Content.Contains("?"))
+                    {
+                        
+                        List<string> randomM = new List<string>();
+                        if (File.Exists(ballAnswer))
+                        {
+                            bool c = false;
+                            string[] rand_list = File.ReadAllLines(ballAnswer);
+                            foreach (var line in rand_list)
+                            {
+                                if (line.Length > 0)
+                                {
+                                    randomM.Add(line);
+                                }
+                                else
+                                {
+                                    if (c == false)
+                                    {
+                                        logWrite("[" + date + "][BOT] 8Ball - Answers files is empty! You need to add something");
+                                        c = true;
+                                    }
+                                }
+                            }
+                            int index = r.Next(randomM.Count);
+                            string rand = randomM[index];
+                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                            logWrite("[" + date + "][BOT] Scott says: " + rand);
+                            await arg.Channel.SendMessageAsync("****Scott**** says: " + rand, false, null);
+                            CLog.LogWrite("[" + date + "][BOT] Scott says: " + rand);
+                        }
+                    }
+                    else
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Your question must contain ? for Scott to answer!");
+                        await arg.Channel.SendMessageAsync("Your question must contain ? for ****Scott**** to answer!", false, null);
+                        CLog.LogWrite("[" + date + "][BOT] Your question must contain ? for Scott to answer!");
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - !8ball Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+
             #endregion
         }
         /// <summary>
