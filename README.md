@@ -43,7 +43,7 @@ Project ongoing live on: https://www.twitch.tv/x_coding
  		 !r  - Shows how many Yanni points has an user. Example: !r @username or just !r for self points!
  		 !t10  - Display the Top 10 users with Yanni points
  		 !8ball  - Magic 8Ball game. Ex: !8ball Should I get a car?
- 	Points can be edited in real time from GUI interface.
+ 	Yanni points can be edited in real time from GUI interface.
 
 
 (more to come)
