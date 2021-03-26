@@ -34,7 +34,6 @@ namespace Hector
     {
         //declare Discord Socket client
         private DiscordSocketClient _client;
-        private CommandHandler _handler;
         //-----------------------------------------------
 
         //data and log directory declare
@@ -53,28 +52,34 @@ namespace Hector
         BackgroundWorker worker;
         //--------------------------------
 
-        //Declare mutex variable for startup instance check
-        Mutex myMutex;
-        //---------------------------------
-
         //declare date variable
         private static string date;
         //---------------------------------
+
         //declare the bot forms variables
         settings sT;
         about aB;
+        yanni_management yM;
         //--------------------------------
         //declare timer for load icons and variables read value
         System.Windows.Threading.DispatcherTimer dispatcherTimer;
         //--------------------------------
 
         //declare weather event variables
-        private static string weatherUnits = "1";
         private static string apiKey;
         static readonly HttpClient clientH = new HttpClient();
         //--------------------------------
 
+        //declare variables for YanniBoi point system and ranking
+        readonly static string user_Points = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\data\user_points.txt";
+        readonly static string user_DateHistory = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\data\user_DateHistory.txt";
+        private static string _pDate;
+        //--------------------------------
+
+        //menu status string control declaration
         private static string menuStatus = "0";
+        //--------------------------------
+
         public MainWindow()
         {
             InitializeComponent();
@@ -104,6 +109,18 @@ namespace Hector
             if (!Directory.Exists(logErrorDirectory))
             {
                 Directory.CreateDirectory(logErrorDirectory);
+            }
+            //------------------------------------------------
+
+            //point system files autocreate
+            if (!File.Exists(user_Points))
+            {
+                File.Create(user_Points);
+            }
+
+            if (!File.Exists(user_DateHistory))
+            {
+                File.Create(user_DateHistory);
             }
             //------------------------------------------------
 
@@ -195,6 +212,12 @@ namespace Hector
         public async Task MainAsync()
         {
 
+            this.Dispatcher.Invoke(() =>
+            {
+                statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/orange_dot.png"));
+                startBotBTN.Content = "STOP";
+            });
+
             try
             {
                 _client = new DiscordSocketClient();
@@ -252,7 +275,7 @@ namespace Hector
             catch (Exception e)
             {
                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                CLog.LogWrite("[" + date + "] User Joined Error: "+e.ToString());
+                CLog.LogWrite("[" + date + "] User Joined Error: " + e.ToString());
             }
             return Task.CompletedTask;
 
@@ -270,19 +293,23 @@ namespace Hector
             try
             {
 
-                if (m.Content != null && m.Content.StartsWith("!help"))
+                if (m.Content != null && m.Content == "!h")
                 {
                     string commands = @"
 **__List of commands__**:
  ****!botname**** - `Shows the one who gave the name of this bot!`
  ****!hector**** - `Displays something about this bot!`
  ****!weather**** - `Displays the weather from a specific City. Example: !weather cityname`
+ ****!++ **** - `Adds Yanni points to user. Example: !++ @username`
+ ****!-- **** - `Removes Yanni points to user. Example: !-- @username`
+ ****!r **** - `Shows how many Yanni points has an user. Example: !r @username or just !r for self points!`
+ ****!t10 **** - `Display the Top 10 users with Yanni points`
 ";
                     logWrite(m.Author.ToString() + ": " + m.Content);
                     await arg.Channel.SendMessageAsync(commands, false, null);
                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    logWrite("[BOT]: "+commands);
-                    CLog.LogWrite("[" + date + "][BOT]: "+commands);
+                    logWrite("[BOT]: " + commands);
+                    CLog.LogWrite("[" + date + "][BOT]: " + commands);
                 }
             }
             catch (Exception e)
@@ -296,7 +323,7 @@ namespace Hector
             try
             {
 
-                if (m.Content != null && m.Content.StartsWith("!hector"))
+                if (m.Content != null && m.Content == "!hector")
                 {
                     logWrite(m.Author.ToString() + ": " + m.Content);
                     await arg.Channel.SendMessageAsync("I'm your bot that will be made by your ideeas ;)", false, null);
@@ -316,7 +343,7 @@ namespace Hector
             try
             {
 
-                if (m.Content != null && m.Content.StartsWith("!botname"))
+                if (m.Content != null && m.Content == "!botname")
                 {
                     logWrite(m.Author.ToString() + ": " + m.Content);
                     await arg.Channel.SendMessageAsync("Thank you yanniboi for this name :* ;)", false, null);
@@ -344,7 +371,7 @@ namespace Hector
                         logWrite(m.Author.ToString() + ": " + m.Content);
                         await arg.Channel.SendMessageAsync("The weather in ****" + cmd[1] + "**** is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + Environment.NewLine + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]), false, null);
                         date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        logWrite("[BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine +"****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) +Environment.NewLine+"****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
+                        logWrite("[BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + Environment.NewLine + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
                         CLog.LogWrite("[" + date + "][BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
                     }
                     else
@@ -359,8 +386,435 @@ namespace Hector
                 CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
             }
             //--------------------------------------------
-        }
 
+            #region Point System commands(by yanniboi)
+            //!++ command
+            try
+            {
+
+                if (m.Content != null && m.Content.StartsWith("!++"))
+                {
+                    logWrite(m.Author.ToString() + ": " + m.Content);
+                    if (m.Content.Contains(" ") && m.Content.Contains("<"))
+                    {
+
+                        string[] cmd = m.Content.Split(' ');
+                        string b = string.Empty;
+
+                        for (int i = 0; i < cmd[1].Length; i++)
+                        {
+                            if (Char.IsDigit(cmd[1][i]))
+                                b += cmd[1][i];
+                        }
+
+                        try
+                        {
+                            string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                            string ms = arg.MentionedUsers.ToList().ToString();
+                            string[] u = eUser.Split('#');
+                            string mUser = u[0];
+                            string[] rUserPointsLines = File.ReadAllLines(user_Points);
+
+                            List<string> pL = new List<string>();
+
+
+                            foreach (var user in rUserPointsLines)
+                            {
+
+                                pL.Add(user);
+                            }
+
+
+                            foreach (var line in pL.ToArray())
+                            {
+
+                                if (line.Length > 0)
+                                {
+
+
+                                    if (line.Contains(mUser))
+                                    {
+                                        string[] userline = line.Split('|');
+                                        if (userline[0] != m.Author.Username)
+                                        {
+                                            int points = Convert.ToInt32(userline[1]);
+                                            int p = points + 1;
+                                            pL.Remove(line);
+                                            string l = mUser + "|" + p;
+                                            pL.Add(l);
+                                            p = 0;
+                                            await arg.Channel.SendMessageAsync("****" + mUser + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
+                                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                            logWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
+                                            CLog.LogWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
+                                        }
+                                        else
+                                        {
+                                            await arg.Channel.SendMessageAsync("You cannot give yourself points, ****" + m.Author.Username + "**** !", false, null);
+                                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                            logWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+                                            CLog.LogWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                            var c = pL.FirstOrDefault(x => x.Contains(mUser));
+                            if (c == null)
+                            {
+                                if (mUser != m.Author.Username)
+                                {
+                                    pL.Add(mUser + "|1");
+                                    await arg.Channel.SendMessageAsync("****" + mUser + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
+                                    CLog.LogWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
+                                }
+                                else
+                                {
+                                    await arg.Channel.SendMessageAsync("You cannot give yourself points, ****" + m.Author.Username + "**** !", false, null);
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+                                    CLog.LogWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+
+                                }
+                            }
+
+                            string finalPointsList = string.Join(Environment.NewLine, pL);
+                            File.WriteAllText(user_Points, finalPointsList);
+
+
+
+                        }
+                        catch
+                        {
+                            await arg.Channel.SendMessageAsync("Mentioned user must be online for giving points!", false, null);
+                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                            logWrite("[" + date + "]Mentioned user must be online for giving points!");
+                            CLog.LogWrite("[" + date + "]Mentioned user must be online for giving points!");
+                        }
+
+                    }
+                    else
+                    {
+                        await arg.Channel.SendMessageAsync("The user must be mentioned with @ for run and must be a space between the command and user mentioned!", false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                        CLog.LogWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - !++ Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!-- command
+            try
+            {
+
+                if (m.Content != null && m.Content.StartsWith("!--"))
+                {
+                    if (m.Content.Contains(" ") && m.Content.Contains("<"))
+                    {
+                        string[] cmd = m.Content.Split(' ');
+                        string b = string.Empty;
+
+                        for (int i = 0; i < cmd[1].Length; i++)
+                        {
+                            if (Char.IsDigit(cmd[1][i]))
+                                b += cmd[1][i];
+                        }
+
+                        try
+                        {
+                            string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                            string[] u = eUser.Split('#');
+                            string mUser = u[0];
+                            string[] rUserPointsLines = File.ReadAllLines(user_Points);
+                            string UserPoints = File.ReadAllText(user_Points);
+                            List<string> pL = new List<string>();
+
+
+                            foreach (var user in rUserPointsLines)
+                            {
+
+                                pL.Add(user);
+                            }
+
+                            bool c = false;
+                            foreach (var line in pL.ToArray())
+                            {
+
+                                if (line.Length > 0)
+                                {
+
+                                    if (line.Contains(mUser))
+                                    {
+                                        string[] userline = line.Split('|');
+                                        if (userline[0] != m.Author.Username)
+                                        {
+                                            int points = Convert.ToInt32(userline[1]);
+                                            if (points != 0)
+                                            {
+                                                int p = points - 1;
+                                                pL.Remove(line);
+                                                string l = mUser + "|" + p;
+                                                pL.Add(l);
+                                                p = 0;
+                                                await arg.Channel.SendMessageAsync("****" + mUser + "**** removed a Yanni point from ****" + m.Author.Username + "**** !", false, null);
+                                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                                logWrite("[" + date + "]" + mUser + " removed a Yanni point from " + m.Author.Username + " !");
+                                                CLog.LogWrite("[" + date + "]" + mUser + " removed a Yanni point from " + m.Author.Username + " !");
+                                            }
+                                            else
+                                            {
+                                                await arg.Channel.SendMessageAsync(" ****" + mUser + "**** has no points anymore !", false, null);
+                                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                                logWrite("[" + date + "]" + mUser + " has no points anymore !");
+                                                CLog.LogWrite("[" + date + "]" + mUser + " has no points anymore !");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            await arg.Channel.SendMessageAsync("You cannot remove points from yourself, ****" + m.Author.Username + "**** !", false, null);
+                                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                            logWrite("[" + date + "][BOT] You cannot remove points from yourself, ****" + m.Author.Username + "**** !");
+                                            CLog.LogWrite("[" + date + "][BOT] You cannot remove points from yourself, ****" + m.Author.Username + "**** !");
+                                        }
+
+                                    }
+
+
+                                }
+                            }
+                            if (!UserPoints.Contains(mUser))
+                            {
+
+                                if (c == false)
+                                {
+
+                                    await arg.Channel.SendMessageAsync(" ****" + mUser + "**** has no points anymore !", false, null);
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "]" + mUser + " has no points anymore !");
+                                    CLog.LogWrite("[" + date + "]" + mUser + " has no points anymore !");
+                                    c = true;
+                                }
+                            }
+                            string finalPointsList = string.Join(Environment.NewLine, pL);
+                            File.WriteAllText(user_Points, finalPointsList);
+
+                        }
+                        catch
+                        {
+                            await arg.Channel.SendMessageAsync("Mentioned user must be online for giving points!", false, null);
+                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                            logWrite("[" + date + "]Mentioned user must be online for giving points!");
+                            CLog.LogWrite("[" + date + "]Mentioned user must be online for giving points!");
+                        }
+
+                    }
+                    else
+                    {
+                        await arg.Channel.SendMessageAsync("The user must be mentioned with @ for run and must be a space between the command and user mentioned!", false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                        CLog.LogWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!rank command
+            try
+            {
+
+                if (m.Content != null && m.Content.StartsWith("!r"))
+                {
+                    string[] rUserPointsLines = File.ReadAllLines(user_Points);
+                    string rUserPints = File.ReadAllText(user_Points);
+                    if (m.Content.Contains(" "))
+                    {
+                        string[] mu = m.Content.Split(' ');
+                        if (mu[1] != null)
+                        {
+                            string b = string.Empty;
+
+                            for (int i = 0; i < mu[1].Length; i++)
+                            {
+                                if (Char.IsDigit(mu[1][i]))
+                                    b += mu[1][i];
+                            }
+                            try
+                            {
+                                string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                                string[] u = eUser.Split('#');
+                                string mUser = u[0];
+
+
+
+                                string user = string.Empty;
+
+                                foreach (var line in rUserPointsLines)
+                                {
+
+                                    if (line.Contains(mUser))
+                                    {
+                                        string[] rank = line.Split('|');
+
+                                        user = "****" + rank[0] + "****, has ****" + rank[1] + "**** Yanni points!";
+                                    }
+
+                                }
+
+                                if (!rUserPints.Contains(mUser))
+                                {
+                                    user = "****" + mUser + "****, has ****0**** Yanni points!";
+                                }
+
+                                await arg.Channel.SendMessageAsync(user, false, null);
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "][BOT]: " + user);
+                                CLog.LogWrite("[" + date + "][BOT]: " + user);
+                            }
+                            catch (Exception ex)
+                            {
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                CLog.LogWriteError("[" + date + "]Error - rank Command: " + ex.ToString());
+                            }
+                        }
+                        else
+                        {
+
+
+
+                            string user = string.Empty;
+
+                            foreach (var line in rUserPointsLines)
+                            {
+
+                                if (line.Contains(m.Author.Username))
+                                {
+                                    string[] rank = line.Split('|');
+
+                                    user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
+                                }
+
+
+                            }
+                            if (!rUserPints.Contains(m.Author.Username))
+                            {
+                                user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
+                            }
+
+                            await arg.Channel.SendMessageAsync(user, false, null);
+                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                            logWrite("[" + date + "][BOT]: " + user);
+                            CLog.LogWrite("[" + date + "][BOT]: " + user);
+                        }
+                    }
+                    else
+                    {
+
+
+
+                        string user = string.Empty;
+
+                        foreach (var line in rUserPointsLines)
+                        {
+
+                            if (line.Contains(m.Author.Username))
+                            {
+                                string[] rank = line.Split('|');
+
+                                user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
+                            }
+
+                        }
+
+
+                        if (!rUserPints.Contains(m.Author.Username))
+                        {
+                            user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
+                        }
+                        await arg.Channel.SendMessageAsync(user, false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT]: " + user);
+                        CLog.LogWrite("[" + date + "][BOT]: " + user);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - rank Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!t10 command
+            try
+            {
+
+                if (m.Content != null && m.Content == "!t10")
+                {
+                    string[] rUserPointsLines = File.ReadAllLines(user_Points);
+                    string rUserPints = File.ReadAllText(user_Points);
+                    List<string> pL = new List<string>();
+                    foreach (var line in rUserPointsLines)
+                    {
+                        string[] t = line.Split('|');
+                        pL.Add(t[1] + "|" + t[0]);
+                    }
+
+                    if (!m.Content.Contains(" "))
+                    {
+                        pL.Sort((a, b) => b.CompareTo(a));
+                        string outs = string.Empty;
+                        int count = 0;
+                        foreach (var item in pL.ToArray())
+                        {
+
+                            string[] t = item.Split('|');
+                            count++;
+                            if (count <= 10 && t[0] != "0")
+                            {
+                                outs += "****" + t[1] + "**** has ****" + t[0] + "****" + Environment.NewLine;
+                            }
+                        }
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Top 10 Yanni points list: " + Environment.NewLine + outs);
+                        await arg.Channel.SendMessageAsync("**__Top 10 Yanni points list:__** " + Environment.NewLine + Environment.NewLine + outs, false, null);
+                        CLog.LogWrite("[" + date + "][BOT] Top 10 Yanni points list: " + Environment.NewLine + outs);
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - rank Command: " + e.ToString());
+            }
+            //--------------------------------------------
+            #endregion
+        }
+        /// <summary>
+        /// discrod.net log system
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
         private Task Log(LogMessage msg)
         {
             logWrite(msg.ToString());
@@ -372,6 +826,22 @@ namespace Hector
                     statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/red_dot.png"));
                     startBotBTN.Content = "START";
                 });
+            }
+            else
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/green_dot.png"));
+                    startBotBTN.Content = "STOP";
+                });
+            }
+
+            if (msg.ToString().Contains("Ready"))
+            {
+                string[] cUser = _client.CurrentUser.ToString().Split('#');
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                logWrite("[" + date + "] Connect as " + cUser[0]);
+                CLog.LogWrite("[" + date + "][BOT] Connect as " + cUser[0]);
             }
             return Task.CompletedTask;
         }
@@ -406,9 +876,7 @@ namespace Hector
                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                 logWrite("[" + date + "] Internet is down! Bot will be alive after internet connection is up!");
                 CLog.LogWrite("[" + date + "] Internet is down! Bot will be alive after internet connection is up!");
-                worker = new BackgroundWorker();
-                worker.DoWork += BotConnect;
-                worker.RunWorkerAsync();
+
             }
             //------------------------------------------
         }
@@ -621,7 +1089,7 @@ namespace Hector
 
                 if (apiKey.Length > 0) // we check the lenght
                 {
-                    
+
                     string html = @"https://api.openweathermap.org/data/2.5/weather?q={0}&appid={1}&units=metric";
 
                     HttpResponseMessage response = clientH.GetAsync(string.Format(html, CityName, Encryption._decryptData(apiKey))).GetAwaiter().GetResult();
@@ -664,6 +1132,7 @@ namespace Hector
                 {
                     //we print the issue on the log viewer console
                     logWrite("No openweathermap.org API Key saved! Please check" + Environment.NewLine);
+                    CLog.LogWrite("C: No openweathermap.org API Key saved! Please check" + Environment.NewLine);
                 }
             }
             catch (Exception e)
@@ -719,9 +1188,9 @@ namespace Hector
 
                 if (apiKey.Length > 0) // we check the lenght
                 {
-          
-                   string html = @"https://api.openweathermap.org/data/2.5/weather?q={0}&appid={1}&units=imperial";
-                    
+
+                    string html = @"https://api.openweathermap.org/data/2.5/weather?q={0}&appid={1}&units=imperial";
+
 
                     HttpResponseMessage response = clientH.GetAsync(string.Format(html, CityName, Encryption._decryptData(apiKey))).GetAwaiter().GetResult();
                     response.EnsureSuccessStatusCode();
@@ -763,6 +1232,7 @@ namespace Hector
                 {
                     //we print the issue on the log viewer console
                     logWrite("No openweathermap.org API Key saved! Please check" + Environment.NewLine);
+                    CLog.LogWrite("F: No openweathermap.org API Key saved! Please check" + Environment.NewLine);
                 }
             }
             catch (Exception e)
@@ -799,6 +1269,17 @@ namespace Hector
             //print the final weather forecast
             return outs;
 
+        }
+
+        /// <summary>
+        /// Open Yanni Points system management form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void YanniPoints_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            yM = new yanni_management();
+            yM.Show();
         }
     }
 }

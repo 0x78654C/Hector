@@ -130,6 +130,13 @@
 
                         </StackPanel>
                     </ListViewItem>
+                    <ListViewItem ToolTip="Yanni Points" Height="44" Foreground="#FFDCDCDC" FontSize="23" PreviewMouseDown="YanniPoints_PreviewMouseDown">
+                        <StackPanel Orientation="Horizontal" >
+                            <materialDesign:PackIcon Kind="Circle" Margin="9" Width="25" Height="25" VerticalAlignment="Center"/>
+                            <TextBlock Text=" Yanni Points" VerticalAlignment="Center"/>
+
+                        </StackPanel>
+                    </ListViewItem>
 
                 </StackPanel>
                 <Button Style="{DynamicResource StartButton}" Name="startBotBTN" Content="START" HorizontalAlignment="Left" Margin="44,517,0,0" VerticalAlignment="Top" Width="110" Height="106" Click="startBTN_Click" Foreground="#FFE2DBDB" FontSize="18"/>
