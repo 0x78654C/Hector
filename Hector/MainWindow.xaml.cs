@@ -887,31 +887,42 @@ namespace Hector
         /// <returns></returns>
         private Task Log(LogMessage msg)
         {
-            logWrite(msg.ToString());
-            CLog.LogWrite(msg.ToString());
-            if (msg.ToString().Contains("Disconnected"))
+            try
             {
-                this.Dispatcher.Invoke(() =>
+                logWrite(msg.ToString());
+                CLog.LogWrite(msg.ToString());
+                if (msg.ToString().Contains("Disconnected"))
                 {
-                    statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/red_dot.png"));
-                    startBotBTN.Content = "START";
-                });
-            }
-            else
-            {
-                this.Dispatcher.Invoke(() =>
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/red_dot.png"));
+                        startBotBTN.Content = "START";
+                    });
+                }
+                else
                 {
-                    statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/green_dot.png"));
-                    startBotBTN.Content = "STOP";
-                });
-            }
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/green_dot.png"));
+                        startBotBTN.Content = "STOP";
+                    });
+                }
 
-            if (msg.ToString().Contains("Ready"))
+                if (msg.ToString().Contains("Ready"))
+                {
+                    string[] cUser = _client.CurrentUser.ToString().Split('#');
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[" + date + "] Connect as " + cUser[0]);
+                    CLog.LogWrite("[" + date + "][BOT] Connect as " + cUser[0]);
+                }
+            }catch(Exception ex)
             {
-                string[] cUser = _client.CurrentUser.ToString().Split('#');
-                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                logWrite("[" + date + "] Connect as " + cUser[0]);
-                CLog.LogWrite("[" + date + "][BOT] Connect as " + cUser[0]);
+                if(ex.ToString().Contains("Server requested a reconnect"))
+                {
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[" + date + "][BOT] Server requested a reconnect");
+                    CLog.LogWrite("[" + date + "][BOT] Server requested a reconnect");
+                }
             }
             return Task.CompletedTask;
         }
