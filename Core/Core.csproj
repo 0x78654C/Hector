@@ -49,6 +49,7 @@
     <Compile Include="CLog.cs" />
     <Compile Include="Dameru.cs" />
     <Compile Include="Encryption.cs" />
+    <Compile Include="MagicEightBall.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Registry.cs" />
