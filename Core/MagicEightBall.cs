@@ -17,7 +17,7 @@ namespace Core
         /// <summary>
         /// Magic Eight Ball Game. 
         /// </summary>
-        /// <param name="AnswerFile">Add the path for the file with answer wich will be displayed</param>
+        /// <param name="AnswerFile">Add the path for the file with answer that will be displayed</param>
         /// <returns>The answer from Magic 8 Ball Game</returns>
         public static string GetAnswer(string AnswerFile)
         {
