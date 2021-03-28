@@ -38,10 +38,10 @@ Project ongoing live on: https://www.twitch.tv/x_coding
     	 !botname - Shows the one who gave the name of this bot!
  		 !hector - Displays something about this bot!
  		 !weather - Displays the weather from a specific City. Example: !weather cityname
- 		 !++  - Adds Yanni points to user. Example: !++ @username
- 		 !--  - Removes Yanni points to user. Example: !-- @username
- 		 !r  - Shows how many Yanni points has an user. Example: !r @username or just !r for self points!
- 		 !t10  - Display the Top 10 users with Yanni points
+ 		 !++  - Adds Yanni points to users/strings(text). Example: !++ @username
+ 		 !--  - Removes Yanni points to user/strings(text). Example: !-- @username
+ 		 !r  - Shows how many Yanni points has an user/string(text). Example: !r @username/string(text) or just !r for self points!
+ 		 !t10  - Display the Top 10 users/strings(text) with Yanni points
  		 !8ball  - Magic 8Ball game. Ex: !8ball Should I get a car?
  	Yanni points can be edited in real time from GUI interface.
 
