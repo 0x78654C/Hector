@@ -112,7 +112,7 @@ namespace Hector
  
             if (userNameTXT.Text.Length > 0 && pointsTXT.Text.Length > 0)
             {
-
+               
                 try
                 {
                     int n = Convert.ToInt32(pointsTXT.Text);
