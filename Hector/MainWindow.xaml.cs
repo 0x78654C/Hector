@@ -85,6 +85,11 @@ namespace Hector
         Random r = new Random();
         //--------------------------------
 
+        //declare variables for bot open windows startup
+        private static string wStart;
+        System.Windows.Threading.DispatcherTimer wStartTimer;
+        //--------------------------------
+
         public MainWindow()
         {
             InitializeComponent();
@@ -151,11 +156,17 @@ namespace Hector
             {
                 Reg.regKey_CreateKey(keyName, "WeatherAPIKey", "");
             }
+
+            if (Reg.regKey_Read(keyName, "wStart") == "")
+            {
+                Reg.regKey_CreateKey(keyName, "wStart", "");
+            }
             //--------------------------------
 
             //read variables values from registry
             menuStatus = Reg.regKey_Read(keyName, "menuStatus");
             apiKey = Reg.regKey_Read(keyName, "WeatherAPIKey");
+            wStart = Reg.regKey_Read(keyName, "wStart");
             try
             {
 
@@ -196,6 +207,20 @@ namespace Hector
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             //----------------------------------
 
+
+            //variables windows startup timer declaration
+            wStartTimer = new System.Windows.Threading.DispatcherTimer();
+            wStartTimer.Tick += wStart_Tick;
+            wStartTimer.Interval = new TimeSpan(0, 0, 1);
+            if (wStart == "1")
+            {
+                if (_client == null)
+                {
+                    wStartTimer.Start();
+                }
+            }
+            //----------------------------------
+
             //check internet connection
             if (!Network.inetCK())
             {
@@ -204,6 +229,8 @@ namespace Hector
                 CLog.LogWrite("[" + date + "] Internet is down! Try again later");
             }
             //----------------------------------
+
+
         }
 
         /// <summary>
@@ -239,9 +266,8 @@ namespace Hector
                 await _client.LoginAsync(TokenType.Bot, d_Token);
                 _client.UserJoined += client_UserJoined;
                 _client.MessageReceived += client_MessageReceived;
-
-                await _client.StartAsync();
-
+               
+                await _client.StartAsync();;
 
                 // Block this task until the program is closed.
                 await Task.Delay(-1);
@@ -657,10 +683,10 @@ namespace Hector
                                                     string l = mUser + "|" + p;
                                                     pL.Add(l);
                                                     p = 0;
-                                                    await arg.Channel.SendMessageAsync("****" + mUser + "**** removed a Yanni point from ****" + m.Author.Username + "**** !", false, null);
+                                                    await arg.Channel.SendMessageAsync("****" + m.Author.Username + "**** removed a Yanni point from ****" + mUser + "**** !", false, null);
                                                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                    logWrite("[" + date + "]" + mUser + " removed a Yanni point from " + m.Author.Username + " !");
-                                                    CLog.LogWrite("[" + date + "]" + mUser + " removed a Yanni point from " + m.Author.Username + " !");
+                                                    logWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + mUser + " !");
+                                                    CLog.LogWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + mUser + " !");
                                                 }
                                                 else
                                                 {
@@ -744,10 +770,10 @@ namespace Hector
                                                 string l = cmd[1] + "|" + p;
                                                 pL.Add(l);
                                                 p = 0;
-                                                await arg.Channel.SendMessageAsync("****" + cmd[1] + "**** removed a Yanni point from ****" + m.Author.Username + "**** !", false, null);
+                                                await arg.Channel.SendMessageAsync("****" + m.Author.Username + "**** removed a Yanni point from ****" + cmd[1] + "**** !", false, null);
                                                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                logWrite("[" + date + "]" + cmd[1] + " removed a Yanni point from " + m.Author.Username + " !");
-                                                CLog.LogWrite("[" + date + "]" + cmd[1] + " removed a Yanni point from " + m.Author.Username + " !");
+                                                logWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " +cmd[1] + " !");
+                                                CLog.LogWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " +cmd[1] + " !");
                                             }
                                             else
                                             {
@@ -1137,6 +1163,7 @@ namespace Hector
         {
             menuStatus = Reg.regKey_Read(keyName, "menuStatus");
             apiKey = Reg.regKey_Read(keyName, "WeatherAPIKey");
+            wStart = Reg.regKey_Read(keyName, "wStart");
             try
             {
 
@@ -1328,6 +1355,7 @@ namespace Hector
             aB = new about();
             aB.ShowDialog();
         }
+        
 
         /// <summary>
         /// opening settings window
@@ -1592,5 +1620,46 @@ namespace Hector
         }
 
         */
+
+        private void wStart_Tick(object sender, EventArgs e)
+        {
+
+
+            if (Network.inetCK())
+            {
+                if (_client == null)
+                {
+
+                    worker = new BackgroundWorker();
+                    worker.DoWork += BotConnect;
+                    worker.RunWorkerAsync();
+                    dispatcherTimer.Start();
+                    wStartTimer.Stop();
+                }
+                else
+                {
+
+                    _client.StopAsync();
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        _client = null;
+                        statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/green_dot.png"));
+                        logViewRTB.Document.Blocks.Clear();
+                        startBotBTN.Content = "START";
+                        dispatcherTimer.Stop();
+                    });
+
+                }
+            }
+            else
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                logWrite("[" + date + "] Internet is down! Try again later");
+                CLog.LogWrite("[" + date + "] Internet is down! Try again later");
+            }
+
+        }
     }
+
+    
 }

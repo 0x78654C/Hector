@@ -25,6 +25,8 @@ namespace Hector
         private static string keyName = "Hector";
         private static string d_Token;
         private static string apiKey;
+        private static string wStart;
+        private const string keyStart = @"Software\Microsoft\Windows\CurrentVersion\Run";
         //----------------------------
 
 
@@ -32,6 +34,7 @@ namespace Hector
         {
             InitializeComponent();
             //read registry values
+            wStart = Reg.regKey_Read(keyName, "wStart");
             apiKey = Reg.regKey_Read(keyName, "WeatherAPIKey");
             weatherTXT.Password = Encryption._decryptData(apiKey);
             try
@@ -43,6 +46,19 @@ namespace Hector
             catch (Exception e)
             {
                 CLog.LogWriteError("Settigns - decrypt oAuth Key: " + e.ToString());
+            }
+            //------------------------------
+
+            //set reboot checkbox based on registry value
+            if (wStart == "1")
+            {
+                startWinCKB.Content = "Open on Windows Startup: ON";
+                startWinCKB.IsChecked = true;
+            }
+            else
+            {
+                startWinCKB.Content = "Open on Windows Startup: OFF";
+                startWinCKB.IsChecked = false;
             }
             //------------------------------
         }
@@ -108,6 +124,31 @@ namespace Hector
 
             MessageBox.Show("Your settings are saved!");
             this.Close();
+        }
+
+        /// <summary>
+        /// Write 1 in registry for enable open on reboot
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void startWinCKB_Checked(object sender, RoutedEventArgs e)
+        {
+            Reg.regKey_WriteSubkey(keyName, "wStart", "1");
+            Reg.regKey_WriteSubkey(keyStart, "Hector", System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+            startWinCKB.Content = "Open on Windows Startup: ON";
+        }
+
+
+        /// <summary>
+        /// Write 0 in registry for dislabe open on reboot
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void startWinCKB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Reg.regKey_WriteSubkey(keyName, "wStart", "0");
+            Reg.regKey_DeleteSubkey(keyStart, "Hector");
+            startWinCKB.Content = "Open on Windows Startup: OFF";
         }
     }
 }

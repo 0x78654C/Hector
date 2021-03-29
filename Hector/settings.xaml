@@ -6,7 +6,7 @@
         xmlns:adorners="http://gu.se/Adorners"
         xmlns:local="clr-namespace:Hector"
         mc:Ignorable="d"
-        Title="Settings" Height="245.713" Width="344.455" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Visibility="Visible" MouseDown="Window_MouseDown" AllowsTransparency="True" WindowStyle="None">
+        Title="Settings" Height="279.713" Width="344.455" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Visibility="Visible" MouseDown="Window_MouseDown" AllowsTransparency="True" WindowStyle="None">
     <Window.Resources>
         <Style x:Key="MyWaterMarkStyle" TargetType="{x:Type TextBox}">
             <Setter Property="Template">
@@ -86,6 +86,7 @@
                     </Style>
                 </adorners:Watermark.TextStyle>
             </PasswordBox>
+            <CheckBox Name="startWinCKB" Foreground="#bfbec2" Content="Open on Windows Startup: OFF" HorizontalAlignment="Left" Margin="77,237,0,0" VerticalAlignment="Top" Checked="startWinCKB_Checked" Unchecked="startWinCKB_Unchecked"/>
 
         </Grid>
 
