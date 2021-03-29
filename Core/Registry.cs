@@ -47,6 +47,29 @@ namespace Core
 
             rk.SetValue(subKeyName, subKeyValue);
         }
+        /// <summary>
+        /// Delete registry subkey
+        /// </summary>
+        /// <param name="keyName"></param>
+        /// <param name="subKeyName"></param>
+        /// <param name="subKeyValue"></param>
+        public static void regKey_DeleteSubkey(string keyName, string subKeyName)
+        {
+            try
+            {
+
+                RegistryKey rk = Registry.CurrentUser.OpenSubKey
+                (keyName, true);
+
+                rk.DeleteValue(subKeyName);
+            }
+            catch
+            {
+
+            }
+        }
+
+
 
         /// <summary>
         /// Registry key reader from HKEY_CURRENT_USER
