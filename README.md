@@ -44,6 +44,7 @@ Project ongoing live on: https://www.twitch.tv/x_coding
  		 !t10  - Display the Top 10 users/strings(text) with Yanni points
  		 !8ball  - Magic 8Ball game. Ex: !8ball Should I get a car?
  	Yanni points can be edited in real time from GUI interface.
+ 	Possibility to auto reconnect on windows restart
 
 
 (more to come)
