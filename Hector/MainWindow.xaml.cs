@@ -1112,31 +1112,21 @@ namespace Hector
         /// <returns></returns>
         private Task Log(LogMessage msg)
         {
-
+            //WebSocket connection was closed 
             if (msg.ToString().Contains("Server requested a reconnect"))
             {
                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                logWrite("[" + date + "][BOT] Server requested a reconnect");
-                CLog.LogWrite("[" + date + "][BOT] Server requested a reconnect");
-            }
-            else
-            {
-                logWrite(msg.ToString());
-                CLog.LogWrite(msg.ToString());
-            }
+                logWrite("[" + date + "][BOT]INFO: Server requested a reconnect");
+                CLog.LogWrite("[" + date + "][BOT]INFO: Server requested a reconnect");
 
-
-            if (msg.ToString().Contains("Disconnected"))
+            }else if (msg.ToString().Contains("Disconnected"))
             {
                 this.Dispatcher.Invoke(() =>
                 {
                     statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/red_dot.png"));
                     startBotBTN.Content = "START";
                 });
-            }
-
-
-            if (msg.ToString().Contains("Ready"))
+            }else if (msg.ToString().Contains("Ready"))
             {
                 Thread.Sleep(50);
                 string[] cUser = _client.CurrentUser.ToString().Split('#');
@@ -1148,6 +1138,17 @@ namespace Hector
                     statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/green_dot.png"));
                     startBotBTN.Content = "STOP";
                 });
+            }
+            else if (msg.ToString().Contains("WebSocket connection was closed"))
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                logWrite("[" + date + "][BOT]INFO: The remote party closed the WebSocket connection without completing the close handshake.");
+                CLog.LogWrite("[" + date + "][BOT]INFO: The remote party closed the WebSocket connection without completing the close handshake.");
+            }
+            else
+            {
+                logWrite(msg.ToString());
+                CLog.LogWrite(msg.ToString());
             }
 
 
