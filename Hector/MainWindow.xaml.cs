@@ -90,6 +90,11 @@ namespace Hector
         System.Windows.Threading.DispatcherTimer wStartTimer;
         //--------------------------------
 
+        //Secret Key Game variables
+        readonly static string PLAYER_DATA = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)  + @"\data\uData.txt";
+        private static string GameDisplay;
+        //--------------------------------
+
         public MainWindow()
         {
             InitializeComponent();
@@ -138,6 +143,13 @@ namespace Hector
             if (!File.Exists(ballAnswer))
             {
                 File.Create(ballAnswer);
+            }
+            //------------------------------------------------
+
+            //SecretKey player data file create
+            if (!File.Exists(PLAYER_DATA))
+            {
+                File.Create(PLAYER_DATA);
             }
             //------------------------------------------------
 
@@ -334,6 +346,17 @@ namespace Hector
  ****!r **** - `Shows how many Yanni points has an user. Example: !r @username or just !r for self points!`
  ****!t10 **** - `Display the Top 10 users with Yanni points`
  ****!8ball **** - `Magic 8Ball game. Ex: !8ball Should I get a car?`
+
+**__Secret Key Game__**
+This Secret Key Game is a capture the flag game.
+First who finds the Secret Key by moveing aorund the map will
+win a coin and position of players is reseted and all will start from middle of the map. Commands for move and ranks:
+ ****!e **** - `Player moves East`
+ ****!w **** - `Player moves West`
+ ****!n **** - `Player moves North`
+ ****!s **** - `Player moves South`
+ ****!c **** - `Shows how many coins a user has. Exmaple: !c @username or just !c for self display coins!`
+ ****!s10 **** - `Display the Top 10 with Secret Key coins!`
 ";
                     logWrite(m.Author.ToString() + ": " + m.Content);
                     await arg.Channel.SendMessageAsync(commands, false, null);
@@ -959,8 +982,8 @@ namespace Hector
                         {
                             await arg.Channel.SendMessageAsync("The command for Yanni points rank must start with !r", false, null);
                             date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                            logWrite("[" + date + "][BOT]: The command for Yanni points rank must start with!r");
-                            CLog.LogWrite("[" + date + "][BOT]: The command for Yanni points rank must start with!r");
+                            logWrite("[" + date + "][BOT]: The command for Yanni points rank must start with !r");
+                            CLog.LogWrite("[" + date + "][BOT]: The command for Yanni points rank must start with !r");
                         }
                     }
                     else
@@ -1104,7 +1127,275 @@ namespace Hector
 
 
             #endregion
+
+            #region Secret Key Game by Scott
+            //movement commands
+            try
+            {
+                if (m.Content != null && m.Content == "!e")
+                {
+
+                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "east", PLAYER_DATA);
+                    if (!GameDisplay.Contains("Win"))
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite(GameDisplay);
+                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                    }
+                    else
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
+                        await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
+                    }
+
+                }
+                else if (m.Content != null && m.Content == "!w")
+                {
+
+                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "west", PLAYER_DATA);
+                    if (!GameDisplay.Contains("Win"))
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite(GameDisplay);
+                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                    }
+                    else
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
+                        await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
+                    }
+                }
+                else if (m.Content != null && m.Content == "!n")
+                {
+
+                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "north", PLAYER_DATA);
+                    if (!GameDisplay.Contains("Win"))
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite(GameDisplay);
+                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                    }
+                    else
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
+                        await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
+                    }
+
+                }
+                else if (m.Content != null && m.Content == "!s")
+                {
+
+                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "south", PLAYER_DATA);
+                    if (!GameDisplay.Contains("Win"))
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite(GameDisplay);
+                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                    }
+                    else
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
+                        await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                logWrite("[" + date + "] Game East error: " + ex.ToString());
+
+            }
+
+            //--------------------------------
+
+            //!s10 command
+            try
+            {
+
+                if (m.Content != null && m.Content == "!s10")
+                {
+                    string[] rUserSP = File.ReadAllLines(PLAYER_DATA);
+                    List<string> pL = new List<string>();
+                    foreach (var line in rUserSP)
+                    {
+                        string[] t = line.Split('|');
+                        t[2] = t[2].Trim();
+                        pL.Add(t[2] + "|" + t[0]);                       
+                    }
+
+                    if (!m.Content.Contains(" "))
+                    {
+                        pL.Sort((a, b) => b.CompareTo(a));
+                        string outs = string.Empty;
+                        int count = 0;
+                        foreach (var item in pL.ToArray())
+                        {
+
+                            string[] t = item.Split('|');
+                            count++;
+                            if (count <= 10 && t[0] != "0")
+                            {
+                                outs += "****" + t[1] + "**** has ****" + t[0] + "**** coins" + Environment.NewLine;
+                            }
+                        }
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Top 10 Secret Key Game coins list: " + Environment.NewLine + outs);
+                        await arg.Channel.SendMessageAsync("**__Top 10 Secret Key Game coins list:__** " + Environment.NewLine + Environment.NewLine + outs, false, null);
+                        CLog.LogWrite("[" + date + "][BOT] Top 10 Secret Key Game coins list: " + Environment.NewLine + outs);
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - secret_Grank Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+
+
+            //!s rank Secret Game command
+            try
+            {
+
+                if (m.Content != null && m.Content.StartsWith("!c"))
+                {
+                    string[] rUserCoinsLines = File.ReadAllLines(PLAYER_DATA);
+                    string rUserCoins = File.ReadAllText(PLAYER_DATA);
+                    if (m.Content.Contains(" "))
+                    {
+                        string[] mu = m.Content.Split(' ');
+                        if (mu[0] == "!c")
+                        {
+                            if (mu[1] != null)
+                            {
+                                if (mu[1].Contains("<"))
+                                {
+                                    string b = string.Empty;
+
+                                    for (int i = 0; i < mu[1].Length; i++)
+                                    {
+                                        if (Char.IsDigit(mu[1][i]))
+                                            b += mu[1][i];
+                                    }
+                                    try
+                                    {
+                                        string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                                        string[] u = eUser.Split('#');
+                                        string mUser = u[0];
+
+
+                                        string user = string.Empty;
+
+                                        foreach (var line in rUserCoinsLines)
+                                        {
+
+                                            if (line.Contains(mUser))
+                                            {
+                                                string[] rank = line.Split('|');
+
+                                                user = "****" + rank[0] + "****, has ****" + rank[2] + "**** coins!";
+                                            }
+
+                                        }
+
+                                        if (!rUserCoins.Contains(mUser))
+                                        {
+                                            user = "****" + mUser + "****, has ****0**** Coins!";
+                                        }
+
+                                        await arg.Channel.SendMessageAsync(user, false, null);
+                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                        logWrite("[" + date + "][BOT]: " + user);
+                                        CLog.LogWrite("[" + date + "][BOT]: " + user);
+
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                        CLog.LogWriteError("[" + date + "]Error - Game rank Command: " + ex.ToString());
+                                    }
+                                }
+                            }
+                            else
+                            {
+
+                                string user = string.Empty;
+
+                                foreach (var line in rUserCoinsLines)
+                                {
+
+                                    if (line.Contains(m.Author.Username))
+                                    {
+                                        string[] rank = line.Split('|');
+
+                                        user = "****" + rank[0] + "****, you have ****" + rank[2] + "**** coins!";
+                                    }
+
+
+                                }
+                                if (!rUserCoins.Contains(m.Author.Username))
+                                {
+                                    user = "****" + m.Author.Username + "****, has ****0**** coins!";
+                                }
+
+                                await arg.Channel.SendMessageAsync(user, false, null);
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "][BOT]: " + user);
+                                CLog.LogWrite("[" + date + "][BOT]: " + user);
+                            }
+                        }
+                        else
+                        {
+                            await arg.Channel.SendMessageAsync("The command for Secret Key Game rank coins for user must contain !c", false, null);
+                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                            logWrite("[" + date + "][BOT]: The command for Secret Key Game rank coins for user must contain !c");
+                            CLog.LogWrite("[" + date + "][BOT]: The command for Secret Key Game rank coins for user must contain !c");
+                        }
+                    }
+                    else
+                    {
+
+                        string user = string.Empty;
+
+                        foreach (var line in rUserCoinsLines)
+                        {
+
+                            if (line.Contains(m.Author.Username))
+                            {
+                                string[] rank = line.Split('|');
+
+                                user = "****" + rank[0] + "****, you have ****" + rank[2] + "**** coins!";
+                            }
+
+                        }
+
+
+                        if (!rUserCoins.Contains(m.Author.Username))
+                        {
+                            user = "****" + m.Author.Username + "****, has ****0**** coins!";
+                        }
+                        await arg.Channel.SendMessageAsync(user, false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT]: " + user);
+                        CLog.LogWrite("[" + date + "][BOT]: " + user);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - Game rank Command: " + e.ToString());
+            }
+            //--------------------------------------------
+            #endregion
         }
+
         /// <summary>
         /// discrod.net log system
         /// </summary>
