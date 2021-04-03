@@ -49,12 +49,12 @@ Project ongoing live on: https://www.twitch.tv/x_coding
  	This Secret Key Game is a capture the flag game.
 	First who finds the Secret Key by moveing aorund the map will
 	win a coin and position of players is reseted and all will start from middle of the map. Commands for move and ranks:
- 		!e - Player moves East
- 		!w - Player moves West
- 		!n - Player moves North
- 		!s - Player moves South
- 		!c - Shows how many coins a user has. Exmaple: !c @username or just !c for self display coins!
- 		!s10 - Display the Top 10 with Secret Key coins!
+ 		 !e - Player moves East
+ 		 !w - Player moves West
+ 		 !n - Player moves North
+ 		 !s - Player moves South
+ 		 !c - Shows how many coins a user has. Exmaple: !c @username or just !c for self display coins!
+ 		 !s10 - Display the Top 10 with Secret Key coins!
  	------------------------------------------------
 
 
