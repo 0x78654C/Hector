@@ -30,9 +30,13 @@ namespace Hector
         readonly static string user_Points = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\data\user_points.txt";
         private static string oldPoints=string.Empty;
         //----------------------
+
         public yanni_management()
         {
             InitializeComponent();
+
+
+
             //loading user and potins from external file in listview
             string[] rUserPoints = File.ReadAllLines(user_Points);
 
@@ -47,6 +51,7 @@ namespace Hector
                 }
             }
             //-----------------------------------------------------
+
         }
 
 
@@ -100,7 +105,7 @@ namespace Hector
 
         }
 
-
+       
         /// <summary>
         /// Button for updateing points
         /// </summary>
