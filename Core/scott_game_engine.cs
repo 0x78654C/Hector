@@ -9,7 +9,12 @@ using System.Windows.Forms;
 
 namespace Core
 {
-     
+    /// <summary>
+    /// Find The Secret Key Game: Players moves with commands-'North, East, West,South' in a grid 5x5.
+    /// If one of the players finds the secret key will gain a coin and reset the game.
+    /// Key will be randomly spawned.
+    /// </summary>
+
     public class scott_game_engine
     {
         //Declare variables for game
@@ -30,18 +35,18 @@ namespace Core
         private static string[] NEW_MAP = null;
         private static int pos = 12;
 
+        //letters allowed 
         private static string[] lettersList = { "a", "b", "c", "d", "e" };
         private static string letterPos = string.Empty;
         private static string PlayerPos = string.Empty;
         private static string newLetter = string.Empty;
         private static string numPos = string.Empty;
-        private static string PLAYER_DATA = Application.StartupPath + @"\uData.txt";//player username|player position/key position
         private static bool win = false;
         private static Random r = new Random();
         //---------------------------------------------
 
         /// <summary>
-        /// Secret Key spawn random generator for 
+        /// Secret Key spawn random generator.
         /// </summary>
         /// <param name="arr">Import array for random object generate</param>
         private static void SetSecretKey(string[] arr)
@@ -72,7 +77,6 @@ namespace Core
         /// Secret Key Game play
         /// </summary>
         /// <param name="UserName">Disocrd Username</param>
-        /// <param name="OutMap">Textbox for output the Data and map</param>
         /// <param name="Command">Coordonates for player movement</param>
         /// <param name="UserData">User data stored afer play</param>
         public static string Game_Play(string UserName, string Command, string UserData)
@@ -80,7 +84,7 @@ namespace Core
             string OutMap = string.Empty;
             try
             {
-                SetSecretKey(DEFAULT_MAP);
+                SetSecretKey(DEFAULT_MAP);//spawn new key in a random position
 
                 DEFAULT_MAP = NEW_MAP;
                 string[] UserDataLines = File.ReadAllLines(UserData);
@@ -92,20 +96,24 @@ namespace Core
                     uD.Add(line);
                     if (line.Length > 0 && line.StartsWith(UserName))
                     {
-
-                        string iPos = line.Split('|')[1];
-                        if (line.Split('|').Count() == 3)
-                        {
-                            points = Convert.ToInt32(line.Split('|')[2]);
-                        }
-
-                        pos = Convert.ToInt32(iPos);
                         data = line;
                     }
-                    else
+
+                }
+
+                if (data != string.Empty) 
+                {
+                    string iPos = data.Split('|')[1];
+                    if (data.Split('|').Count() == 3)
                     {
-                        pos = 12;
+                        points = Convert.ToInt32(data.Split('|')[2]);
                     }
+
+                    pos = Convert.ToInt32(iPos);
+                }
+                else
+                {
+                    pos = 12;
                 }
 
                 letterPos = DEFAULT_MAP[pos].Split('-')[0];
