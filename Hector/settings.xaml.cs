@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,6 +28,8 @@ namespace Hector
         private static string apiKey;
         private static string wStart;
         private const string keyStart = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        private static string cmdPrefix;
+        private static readonly Regex _regex = new Regex("[^!-*.-]+");
         //----------------------------
 
 
@@ -36,6 +39,8 @@ namespace Hector
             //read registry values
             wStart = Reg.regKey_Read(keyName, "wStart");
             apiKey = Reg.regKey_Read(keyName, "WeatherAPIKey");
+            cmdPrefix = Reg.regKey_Read(keyName, "cmdPrefix");
+            cmdPrefixXT.Text = cmdPrefix;
             weatherTXT.Password = Encryption._decryptData(apiKey);
             try
             {
@@ -61,6 +66,7 @@ namespace Hector
                 startWinCKB.IsChecked = false;
             }
             //------------------------------
+
         }
         /// <summary>
         /// Drag window with mouse
@@ -122,6 +128,17 @@ namespace Hector
             }
             //--------------------------------
 
+            //store command prefix in registry
+            if (cmdPrefixXT.Text != "")
+            {
+                Reg.regKey_WriteSubkey(keyName, "cmdPrefix", cmdPrefixXT.Text);
+            }
+            else
+            {
+                Reg.regKey_WriteSubkey(keyName, "cmdPrefix","!");
+            }
+            //--------------------------------
+
             MessageBox.Show("Your settings are saved!");
             this.Close();
         }
@@ -149,6 +166,46 @@ namespace Hector
             Reg.regKey_WriteSubkey(keyName, "wStart", "0");
             Reg.regKey_DeleteSubkey(keyStart, "Hector");
             startWinCKB.Content = "Open on Windows Startup: OFF";
+       
+        }
+        /// <summary>
+        /// Acceptin only custom characters
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cmdPrefixTXT_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !IsTextAllowed(e.Text);
+        }
+        /// <summary>
+        /// check for regex match
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static bool IsTextAllowed(string text)
+        {
+            return !_regex.IsMatch(text);
+        }
+
+        /// <summary>
+        /// Prevent pasting letterts 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TextBoxPasting(object sender, DataObjectPastingEventArgs e)
+        {
+            if (e.DataObject.GetDataPresent(typeof(String)))
+            {
+                String text = (String)e.DataObject.GetData(typeof(String));
+                if (!IsTextAllowed(text))
+                {
+                    e.CancelCommand();
+                }
+            }
+            else
+            {
+                e.CancelCommand();
+            }
         }
     }
 }

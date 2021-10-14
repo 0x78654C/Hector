@@ -57,13 +57,13 @@
         </ControlTemplate>
 
     </Window.Resources>
-        
-        <Grid Background="#343336" >
+
+    <Grid Background="#343336" >
         <Border BorderBrush="Black" BorderThickness="1">
-            
+
         </Border>
         <Grid VerticalAlignment="Top" Height="50" Background="#4a3666" >
-            <TextBlock Text="Yanni Points Management"  TextAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="22" Margin="212,6,246,4" Width="262"/>
+            <TextBlock Text="Yanni Points Management"  TextAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="22" Margin="183,6,208,4" Width="271"/>
             <Label Name="closeLBL" Content="x" FontSize="26" Foreground="#FFE1DDE2" HorizontalAlignment="Right" Margin="0,-3,10,0" VerticalAlignment="Top" Height="46" PreviewMouseDown="closeLBL_PreviewMouseDown"/>
             <Label Name="miniMizeLBL" Content="_" FontSize="26" Foreground="#FFE1DDE2" HorizontalAlignment="Right" Margin="0,-7,37,0" VerticalAlignment="Top" Height="46" PreviewMouseDown="miniMizeLBL_PreviewMouseDown" />
         </Grid>

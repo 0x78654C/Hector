@@ -53,7 +53,6 @@ namespace Core
         {
             if (win == false)
             {
-                bool c = false;
                 List<string> randomM = new List<string>();
 
                 foreach (var line in arr)
@@ -62,12 +61,10 @@ namespace Core
                     {
                         randomM.Add(line);
                     }
-
                 }
                 int index = r.Next(randomM.Count);
                 string rand = randomM[index];
                 string num = rand.Split('-')[1];
-
                 NEW_MAP = arr.Select(s => s.Replace(rand, "S-" + num)).ToArray();
                 win = true;
             }
@@ -79,7 +76,7 @@ namespace Core
         /// <param name="UserName">Disocrd Username</param>
         /// <param name="Command">Coordonates for player movement</param>
         /// <param name="UserData">User data stored afer play</param>
-        public static string Game_Play(string UserName, string Command, string UserData)
+        public static string Game_Play(string UserName, string Command, string UserData, string Server_ID)
         {
             string OutMap = string.Empty;
             try
@@ -159,7 +156,6 @@ namespace Core
                             points++;
                         }
                     }
-
                 }
                 //move y--
                 if (Command == "west")
@@ -174,10 +170,8 @@ namespace Core
                         pos = 24;
                     }
 
-
                     if (pos >= 0 && DEFAULT_MAP[pos].Contains(letterPos) || DEFAULT_MAP[pos].Contains("S"))
                     {
-
                         int index = Array.FindIndex(DEFAULT_MAP, row => row.Contains(DEFAULT_MAP[pos]));
                         PlayerPos = DEFAULT_MAP[index];
                         if (PlayerPos.Contains("S"))
@@ -216,18 +210,18 @@ namespace Core
                     {
                         pos = 24;
                     }
-                    letterPos = DEFAULT_MAP[pos].Split('-')[0];
 
+                    letterPos = DEFAULT_MAP[pos].Split('-')[0];
                     numPos = DEFAULT_MAP[pos].Split('-')[1];
                     int nIndex = Array.FindIndex(lettersList, row => row.Contains(letterPos));
                     int lPos = 0;
+
                     if (nIndex > 0)
                     {
                        lPos = nIndex - 1;
                     }
                     if (lPos >= 0)
                     {
-
                         newLetter = lettersList[lPos];
                         int index = Array.FindIndex(DEFAULT_MAP, row => row.Contains(newLetter + "-" + numPos));
                         pos = index;
@@ -243,12 +237,8 @@ namespace Core
                             DEFAULT_MAP = DEFAULT_MAP2;
                             points++;
                         }
-
                     }
-
-
                 }
-
 
                 //move x--
                 if (Command == "south")
@@ -261,7 +251,6 @@ namespace Core
                     {
                         pos = 24;
                     }
-
 
                     letterPos = DEFAULT_MAP[pos].Split('-')[0];
 
@@ -279,7 +268,6 @@ namespace Core
                   
                     if (lPos <= 4)
                     {
-
                         newLetter = lettersList[lPos];
                         int index = Array.FindIndex(DEFAULT_MAP, row => row.Contains(newLetter + "-" + numPos));
                         pos = index;
@@ -295,9 +283,7 @@ namespace Core
                             DEFAULT_MAP = DEFAULT_MAP2;
                             points++;
                         }
-
                     }
-
                 }
 
                 if (!OutMap.Contains("Win"))
@@ -312,7 +298,7 @@ namespace Core
                     OutMap += DEFAULT_MAP2[20] + "    " + DEFAULT_MAP2[21] + "    " + DEFAULT_MAP2[22] + "    " + DEFAULT_MAP2[23] + "    " + DEFAULT_MAP2[24] + Environment.NewLine + "    " + Environment.NewLine;
                     OutMap += "-------------------------" + Environment.NewLine;
                     OutMap = OutMap.Replace(PlayerPos, " ***X*** ");
-                    OutMap += "Player Name: ***" + UserName +"***"+ Environment.NewLine;
+                    OutMap += "Player Name: ***" + UserName + "***" + Environment.NewLine;
                     OutMap += "-------------------------" + Environment.NewLine;
                     foreach (var item in DEFAULT_MAP2)
                     {
@@ -324,13 +310,12 @@ namespace Core
 
                     uD.Remove(data);
                     uD.Add(UserName + "|" + pos.ToString() + "|" + points);
+
                     File.WriteAllText(UserData, string.Join(Environment.NewLine, uD));
                     pos = 12;
-
                 }
                 else
-                {
-
+                { 
                     uD.Clear();
                     foreach (var item in UserDataLines)
                     {
@@ -338,7 +323,8 @@ namespace Core
                         {
                             string[] user = item.Split('|');
                             uD.Add(user[0] + "|12|" + points);
-                        }else
+                        }
+                        else
                         {
                             string[] user = item.Split('|');
                             uD.Add(user[0] + "|12|" + user[2]);
@@ -347,8 +333,6 @@ namespace Core
                     File.WriteAllText(UserData, string.Join(Environment.NewLine, uD));
                     pos = 12;
                 }
-
-
                 return OutMap;
 
             }catch(Exception ex)

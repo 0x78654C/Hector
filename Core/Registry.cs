@@ -29,7 +29,6 @@ namespace Core
             {
                 return true;
             }
-
         }
 
         /// <summary>
@@ -57,7 +56,6 @@ namespace Core
         {
             try
             {
-
                 RegistryKey rk = Registry.CurrentUser.OpenSubKey
                 (keyName, true);
 

@@ -36,7 +36,7 @@ namespace Core
                     else
                     {
                         if (c == false)
-                        {
+                        {                         
                             return "Answers files is empty! You need to add something";
                             c = true;
                             break;
