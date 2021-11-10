@@ -1321,22 +1321,17 @@ win a coin and position of players is reseted and all will start from middle of 
                                 }
                                 else
                                 {
-
                                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                                     logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
                                     await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
-
                                 }
                             }
                         }
-
                     }
-
                     catch (Exception ex)
                     {
                         date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                         logWrite("[" + date + "] Game East error: " + ex.ToString());
-
                     }
 
                     //--------------------------------
@@ -1344,7 +1339,6 @@ win a coin and position of players is reseted and all will start from middle of 
                     //!s10 command
                     try
                     {
-
                         if (chatMessage != null && chatMessage == cmdPrefix + "s10")
                         {
                             string[] rUserSP = File.ReadAllLines(PLAYER_DATA);
@@ -1606,15 +1600,16 @@ win a coin and position of players is reseted and all will start from middle of 
             if (Network.inetCK())
             {
                 statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/green_dot.png"));
+                startBotBTN.Content = "STOP";
             }
             else
             {
                 statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/red_dot.png"));
                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                startBotBTN.Content = "START";
                //temporary disable
                 //logWrite("[" + date + "] Internet is down! Bot will be alive after internet connection is up!");
                 //CLog.LogWrite("[" + date + "] Internet is down! Bot will be alive after internet connection is up!");
-
             }
             //------------------------------------------
         }
@@ -1718,7 +1713,7 @@ win a coin and position of players is reseted and all will start from middle of 
                         _client = null;
                         statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/green_dot.png"));
                         logViewRTB.Document.Blocks.Clear();
-                        startBotBTN.Content = "START";
+                        startBotBTN.Content = "STOP";
                         dispatcherTimer.Stop();
                     });
 
