@@ -31,7 +31,7 @@ namespace Core
                 {
                     if (line.Length > 0)
                     {
-                        randomM.Add(line);
+                        randomM.Add(line); 
                     }
                     else
                     {
