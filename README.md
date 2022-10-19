@@ -22,7 +22,7 @@ _____________________________________________________
 
 **Requirement**: 
 
-.NET Framework 4.7
+.NET Framework 4.8
 The libs mentioned upper can be installed via NuGet in Visual Studio
 
 _____________________________________________________
