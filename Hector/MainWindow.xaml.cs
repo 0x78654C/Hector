@@ -1,28 +1,19 @@
-﻿using System;
+﻿using Core;
+using Discord;
+using Discord.WebSocket;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Runtime.Remoting.Contexts;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Core;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Hector
 {
@@ -93,7 +84,7 @@ namespace Hector
         //--------------------------------
 
         //Secret Key Game variables
-        readonly static string PLAYER_DATA = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)  + @"\data\uData.txt";
+        readonly static string PLAYER_DATA = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\data\uData.txt";
         private static string GameDisplay;
         private static string sGame;
         private static string channelID;
@@ -199,7 +190,7 @@ namespace Hector
                 Reg.regKey_CreateKey(keyName, "sChannel", "");
             }
 
-            if (Reg.regKey_Read(keyName, "cmdPrefix")=="")
+            if (Reg.regKey_Read(keyName, "cmdPrefix") == "")
             {
                 Reg.regKey_WriteSubkey(keyName, "cmdPrefix", "!");
             }
@@ -331,15 +322,20 @@ namespace Hector
 
             try
             {
-                _client = new DiscordSocketClient();
+                var config = new DiscordSocketConfig
+                {
+                    GatewayIntents = GatewayIntents.All
+                };
+
+                _client = new DiscordSocketClient(config);
 
                 _client.Log += Log;
 
                 await _client.LoginAsync(TokenType.Bot, d_Token);
                 _client.UserJoined += client_UserJoined;
                 _client.MessageReceived += client_MessageReceived;
-               
-                await _client.StartAsync();;
+
+                await _client.StartAsync(); ;
 
                 // Block this task until the program is closed.
                 await Task.Delay(-1);
@@ -404,13 +400,13 @@ namespace Hector
 
             //!help command
             try
-                {
+            {
 
-                    if (chatMessage != null && chatMessage == cmdPrefix+"h")
-                    {
-                        string commands = @"
+                if (chatMessage != null && chatMessage == cmdPrefix + "h")
+                {
+                    string commands = @"
 **__List of commands__**:
- ****"+cmdPrefix+ @"botname**** - `Shows the one who gave the name of this bot!`
+ ****" + cmdPrefix + @"botname**** - `Shows the one who gave the name of this bot!`
  ****" + cmdPrefix + @"hector**** - `Displays something about this bot!`
  ****" + cmdPrefix + @"weather**** - `Displays the weather from a specific City. Example: " + cmdPrefix + @"weather cityname`
  ****" + cmdPrefix + @"++ **** - `Adds Yanni points to user. Example: " + cmdPrefix + @"++ @username`
@@ -430,206 +426,117 @@ win a coin and position of players is reseted and all will start from middle of 
  ****" + cmdPrefix + @"c **** - `Shows how many coins a user has. Exmaple: " + cmdPrefix + @"c @username or just " + cmdPrefix + @"c for self display coins!`
  ****" + cmdPrefix + @"s10 **** - `Display the Top 10 with Secret Key coins!`
 ";
+                    logWrite(m.Author.ToString() + ": " + chatMessage);
+                    await arg.Channel.SendMessageAsync(commands, false, null);
+                    //await arg.Author.SendMessageAsync(commands); for future work
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[BOT]: " + commands);
+                    CLog.LogWrite("[" + date + "][BOT]: " + commands);
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - hector Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!hecktor command
+            try
+            {
+
+                if (chatMessage != null && chatMessage == cmdPrefix + "hector")
+                {
+
+                    logWrite(m.Author.ToString() + ": " + chatMessage);
+                    await arg.Channel.SendMessageAsync("I'm your bot that will be made by your ideeas ;)", false, null);
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[BOT]: I'm your bot that will be made by your ideeas ;)");
+                    CLog.LogWrite("[" + date + "][BOT]: I'm your bot that will be made by your ideeas ;)");
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - hector Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!botname command
+            try
+            {
+
+                if (chatMessage != null && chatMessage == cmdPrefix + "botname")
+                {
+                    logWrite(m.Author.ToString() + ": " + chatMessage);
+                    await arg.Channel.SendMessageAsync("Thank you yanniboi for this name :* ;)", false, null);
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[BOT]: Thank you yanniboi for this name :* ;)");
+                    CLog.LogWrite("[" + date + "][BOT]: Thank you yanniboi for this name :* ;)");
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!weather command
+            try
+            {
+
+                if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "weather"))
+                {
+                    string[] cmd = chatMessage.Split(' ');
+                    if (cmd[1].Length > 0)
+                    {
                         logWrite(m.Author.ToString() + ": " + chatMessage);
-                        await arg.Channel.SendMessageAsync(commands, false, null);
-                        //await arg.Author.SendMessageAsync(commands); for future work
+                        await arg.Channel.SendMessageAsync("The weather in ****" + cmd[1] + "**** is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + Environment.NewLine + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]), false, null);
                         date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        logWrite("[BOT]: " + commands);
-                        CLog.LogWrite("[" + date + "][BOT]: " + commands);
+                        logWrite("[BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + Environment.NewLine + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
+                        CLog.LogWrite("[" + date + "][BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
+                    }
+                    else
+                    {
+                        await arg.Channel.SendMessageAsync("Oups! Please specify the City name for weather command. Example: !weather cityname", false, null);
                     }
                 }
-                catch (Exception e)
-                {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - hector Command: " + e.ToString());
-                }
-                //--------------------------------------------
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
+            }
+            //--------------------------------------------
 
-                //!hecktor command
-                try
+            #region Point System commands(by yanniboi)
+            //!++ command
+            try
+            {
+
+                if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "++"))
                 {
 
-                    if (chatMessage != null && chatMessage == cmdPrefix + "hector")
+                    if (chatMessage.Contains(" "))
                     {
-
-                        logWrite(m.Author.ToString() + ": " + chatMessage);
-                        await arg.Channel.SendMessageAsync("I'm your bot that will be made by your ideeas ;)", false, null);
-                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        logWrite("[BOT]: I'm your bot that will be made by your ideeas ;)");
-                        CLog.LogWrite("[" + date + "][BOT]: I'm your bot that will be made by your ideeas ;)");
-                    }
-                }
-                catch (Exception e)
-                {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - hector Command: " + e.ToString());
-                }
-                //--------------------------------------------
-
-                //!botname command
-                try
-                {
-
-                    if (chatMessage != null && chatMessage == cmdPrefix + "botname")
-                    {
-                        logWrite(m.Author.ToString() + ": " + chatMessage);
-                        await arg.Channel.SendMessageAsync("Thank you yanniboi for this name :* ;)", false, null);
-                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        logWrite("[BOT]: Thank you yanniboi for this name :* ;)");
-                        CLog.LogWrite("[" + date + "][BOT]: Thank you yanniboi for this name :* ;)");
-                    }
-                }
-                catch (Exception e)
-                {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
-                }
-                //--------------------------------------------
-
-                //!weather command
-                try
-                {
-
-                    if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "weather"))
-                    {
-                        string[] cmd = chatMessage.Split(' ');
-                        if (cmd[1].Length > 0)
+                        if (chatMessage.Contains("<"))
                         {
-                            logWrite(m.Author.ToString() + ": " + chatMessage);
-                            await arg.Channel.SendMessageAsync("The weather in ****" + cmd[1] + "**** is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + Environment.NewLine + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]), false, null);
-                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                            logWrite("[BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + Environment.NewLine + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
-                            CLog.LogWrite("[" + date + "][BOT]: The weather in " + cmd[1] + " is: " + Environment.NewLine + "****Celsius****" + Environment.NewLine + weatherForecastMetric(cmd[1]) + "****Fahrenheit****" + Environment.NewLine + weatherForecastImperial(cmd[1]));
-                        }
-                        else
-                        {
-                            await arg.Channel.SendMessageAsync("Oups! Please specify the City name for weather command. Example: !weather cityname", false, null);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
-                }
-                //--------------------------------------------
+                            string[] cmd = chatMessage.Split(' ');
+                            string b = string.Empty;
 
-                #region Point System commands(by yanniboi)
-                //!++ command
-                try
-                {
-
-                    if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "++"))
-                    {
-
-                        if (chatMessage.Contains(" "))
-                        {
-                            if (chatMessage.Contains("<"))
+                            for (int i = 0; i < cmd[1].Length; i++)
                             {
-                                string[] cmd = chatMessage.Split(' ');
-                                string b = string.Empty;
-
-                                for (int i = 0; i < cmd[1].Length; i++)
-                                {
-                                    if (Char.IsDigit(cmd[1][i]))
-                                        b += cmd[1][i];
-                                }
-
-                                try
-                                {
-                                    string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
-                                    string ms = arg.MentionedUsers.ToList().ToString();
-                                    string[] u = eUser.Split('#');
-                                    string mUser = u[0];
-                                    string[] rUserPointsLines = File.ReadAllLines(user_Points);
-
-                                    List<string> pL = new List<string>();
-
-
-                                    foreach (var user in rUserPointsLines)
-                                    {
-
-                                        pL.Add(user);
-                                    }
-
-
-                                    foreach (var line in pL.ToArray())
-                                    {
-
-                                        if (line.Length > 0)
-                                        {
-
-
-                                            if (line.Contains(mUser))
-                                            {
-                                                string[] userline = line.Split('|');
-                                                if (userline[0] != m.Author.Username)
-                                                {
-                                                    int points = Convert.ToInt32(userline[1]);
-                                                    int p = points + 1;
-                                                    pL.Remove(line);
-                                                    string l = mUser + "|" + p;
-                                                    pL.Add(l);
-                                                    p = 0;
-                                                    await arg.Channel.SendMessageAsync("****" + mUser + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
-                                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                    logWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
-                                                    CLog.LogWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
-                                                }
-                                                else
-                                                {
-                                                    await arg.Channel.SendMessageAsync("You cannot give yourself points, ****" + m.Author.Username + "**** !", false, null);
-                                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                    logWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
-                                                    CLog.LogWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
-
-                                                }
-
-                                            }
-
-                                        }
-
-                                    }
-
-                                    var c = pL.FirstOrDefault(x => x.Contains(mUser));
-                                    if (c == null)
-                                    {
-                                        if (mUser != m.Author.Username)
-                                        {
-                                            pL.Add(mUser + "|1");
-                                            await arg.Channel.SendMessageAsync("****" + mUser + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
-                                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                            logWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
-                                            CLog.LogWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
-                                        }
-                                        else
-                                        {
-                                            await arg.Channel.SendMessageAsync("You cannot give yourself points, ****" + m.Author.Username + "**** !", false, null);
-                                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                            logWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
-                                            CLog.LogWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
-
-                                        }
-                                    }
-
-                                    string finalPointsList = string.Join(Environment.NewLine, pL);
-                                    File.WriteAllText(user_Points, finalPointsList);
-
-
-
-                                }
-                                catch
-                                {
-                                    await arg.Channel.SendMessageAsync("Mentioned user must be online for giving points!", false, null);
-                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    logWrite("[" + date + "]Mentioned user must be online for giving points!");
-                                    CLog.LogWrite("[" + date + "]Mentioned user must be online for giving points!");
-                                }
+                                if (Char.IsDigit(cmd[1][i]))
+                                    b += cmd[1][i];
                             }
-                            else
-                            {
-                                string[] cmd = chatMessage.Split(' ');
 
+                            try
+                            {
+                                string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                                string ms = arg.MentionedUsers.ToList().ToString();
+                                string[] u = eUser.Split('#');
+                                string mUser = u[0];
                                 string[] rUserPointsLines = File.ReadAllLines(user_Points);
 
                                 List<string> pL = new List<string>();
@@ -649,7 +556,7 @@ win a coin and position of players is reseted and all will start from middle of 
                                     {
 
 
-                                        if (line.Contains(cmd[1]))
+                                        if (line.Contains(mUser))
                                         {
                                             string[] userline = line.Split('|');
                                             if (userline[0] != m.Author.Username)
@@ -657,13 +564,13 @@ win a coin and position of players is reseted and all will start from middle of 
                                                 int points = Convert.ToInt32(userline[1]);
                                                 int p = points + 1;
                                                 pL.Remove(line);
-                                                string l = cmd[1] + "|" + p;
+                                                string l = mUser + "|" + p;
                                                 pL.Add(l);
                                                 p = 0;
-                                                await arg.Channel.SendMessageAsync("****" + cmd[1] + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
+                                                await arg.Channel.SendMessageAsync("****" + mUser + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
                                                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                logWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
-                                                CLog.LogWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
+                                                logWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
+                                                CLog.LogWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
                                             }
                                             else
                                             {
@@ -680,16 +587,16 @@ win a coin and position of players is reseted and all will start from middle of 
 
                                 }
 
-                                var c = pL.FirstOrDefault(x => x.Contains(cmd[1]));
+                                var c = pL.FirstOrDefault(x => x.Contains(mUser));
                                 if (c == null)
                                 {
-                                    if (cmd[1] != m.Author.Username)
+                                    if (mUser != m.Author.Username)
                                     {
-                                        pL.Add(cmd[1] + "|1");
-                                        await arg.Channel.SendMessageAsync("****" + cmd[1] + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
+                                        pL.Add(mUser + "|1");
+                                        await arg.Channel.SendMessageAsync("****" + mUser + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
                                         date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
-                                        CLog.LogWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
+                                        logWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
+                                        CLog.LogWrite("[" + date + "][BOT]" + mUser + " gained a Yanni point from " + m.Author.Username + "!");
                                     }
                                     else
                                     {
@@ -707,135 +614,137 @@ win a coin and position of players is reseted and all will start from middle of 
 
 
                             }
+                            catch
+                            {
+                                await arg.Channel.SendMessageAsync("Mentioned user must be online for giving points!", false, null);
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "]Mentioned user must be online for giving points!");
+                                CLog.LogWrite("[" + date + "]Mentioned user must be online for giving points!");
+                            }
                         }
                         else
                         {
-                            await arg.Channel.SendMessageAsync("The user must be mentioned with @ for run and must be a space between the command and user mentioned!", false, null);
-                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                            logWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
-                            CLog.LogWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
-                        }
+                            string[] cmd = chatMessage.Split(' ');
 
-                    }
-                }
-                catch (Exception e)
-                {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - !++ Command: " + e.ToString());
-                }
-                //--------------------------------------------
+                            string[] rUserPointsLines = File.ReadAllLines(user_Points);
 
-                //!-- command
-                try
-                {
+                            List<string> pL = new List<string>();
 
-                    if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "--"))
-                    {
-                        if (chatMessage.Contains(" "))
-                        {
-                            if (chatMessage.Contains("<"))
+
+                            foreach (var user in rUserPointsLines)
                             {
-                                string[] cmd = chatMessage.Split(' ');
-                                string b = string.Empty;
 
-                                for (int i = 0; i < cmd[1].Length; i++)
+                                pL.Add(user);
+                            }
+
+
+                            foreach (var line in pL.ToArray())
+                            {
+
+                                if (line.Length > 0)
                                 {
-                                    if (Char.IsDigit(cmd[1][i]))
-                                        b += cmd[1][i];
-                                }
-
-                                try
-                                {
-                                    string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
-                                    string[] u = eUser.Split('#');
-                                    string mUser = u[0];
-                                    string[] rUserPointsLines = File.ReadAllLines(user_Points);
-                                    string UserPoints = File.ReadAllText(user_Points);
-                                    List<string> pL = new List<string>();
 
 
-                                    foreach (var user in rUserPointsLines)
+                                    if (line.Contains(cmd[1]))
                                     {
-
-                                        pL.Add(user);
-                                    }
-
-                                    bool c = false;
-                                    foreach (var line in pL.ToArray())
-                                    {
-
-                                        if (line.Length > 0)
+                                        string[] userline = line.Split('|');
+                                        if (userline[0] != m.Author.Username)
                                         {
-
-                                            if (line.Contains(mUser))
-                                            {
-                                                string[] userline = line.Split('|');
-                                                if (userline[0] != m.Author.Username)
-                                                {
-                                                    int points = Convert.ToInt32(userline[1]);
-                                                    if (points != 0)
-                                                    {
-                                                        int p = points - 1;
-                                                        pL.Remove(line);
-                                                        string l = mUser + "|" + p;
-                                                        pL.Add(l);
-                                                        p = 0;
-                                                        await arg.Channel.SendMessageAsync("****" + m.Author.Username + "**** removed a Yanni point from ****" + mUser + "**** !", false, null);
-                                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                        logWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + mUser + " !");
-                                                        CLog.LogWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + mUser + " !");
-                                                    }
-                                                    else
-                                                    {
-                                                        await arg.Channel.SendMessageAsync(" ****" + mUser + "**** has no points anymore !", false, null);
-                                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                        logWrite("[" + date + "]" + mUser + " has no points anymore !");
-                                                        CLog.LogWrite("[" + date + "]" + mUser + " has no points anymore !");
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    await arg.Channel.SendMessageAsync("You cannot remove points from yourself, ****" + m.Author.Username + "**** !", false, null);
-                                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                    logWrite("[" + date + "][BOT] You cannot remove points from yourself, ****" + m.Author.Username + "**** !");
-                                                    CLog.LogWrite("[" + date + "][BOT] You cannot remove points from yourself, ****" + m.Author.Username + "**** !");
-                                                }
-
-                                            }
-
-
-                                        }
-                                    }
-                                    if (!UserPoints.Contains(mUser))
-                                    {
-
-                                        if (c == false)
-                                        {
-
-                                            await arg.Channel.SendMessageAsync(" ****" + mUser + "**** has no points anymore !", false, null);
+                                            int points = Convert.ToInt32(userline[1]);
+                                            int p = points + 1;
+                                            pL.Remove(line);
+                                            string l = cmd[1] + "|" + p;
+                                            pL.Add(l);
+                                            p = 0;
+                                            await arg.Channel.SendMessageAsync("****" + cmd[1] + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
                                             date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                            logWrite("[" + date + "]" + mUser + " has no points anymore !");
-                                            CLog.LogWrite("[" + date + "]" + mUser + " has no points anymore !");
-                                            c = true;
+                                            logWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
+                                            CLog.LogWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
                                         }
+                                        else
+                                        {
+                                            await arg.Channel.SendMessageAsync("You cannot give yourself points, ****" + m.Author.Username + "**** !", false, null);
+                                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                            logWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+                                            CLog.LogWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+
+                                        }
+
                                     }
-                                    string finalPointsList = string.Join(Environment.NewLine, pL);
-                                    File.WriteAllText(user_Points, finalPointsList);
 
                                 }
-                                catch
+
+                            }
+
+                            var c = pL.FirstOrDefault(x => x.Contains(cmd[1]));
+                            if (c == null)
+                            {
+                                if (cmd[1] != m.Author.Username)
                                 {
-                                    await arg.Channel.SendMessageAsync("Mentioned user must be online for takeing points!", false, null);
+                                    pL.Add(cmd[1] + "|1");
+                                    await arg.Channel.SendMessageAsync("****" + cmd[1] + "**** gained a Yanni point from ****" + m.Author.Username + "**** !", false, null);
                                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    logWrite("[" + date + "]Mentioned user must be online for takeing points!");
-                                    CLog.LogWrite("[" + date + "]Mentioned user must be online for takeing points!");
+                                    logWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
+                                    CLog.LogWrite("[" + date + "][BOT]" + cmd[1] + " gained a Yanni point from " + m.Author.Username + "!");
+                                }
+                                else
+                                {
+                                    await arg.Channel.SendMessageAsync("You cannot give yourself points, ****" + m.Author.Username + "**** !", false, null);
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+                                    CLog.LogWrite("[" + date + "][BOT] You cannot give yourself points, ****" + m.Author.Username + "**** !");
+
                                 }
                             }
-                            else
+
+                            string finalPointsList = string.Join(Environment.NewLine, pL);
+                            File.WriteAllText(user_Points, finalPointsList);
+
+
+
+                        }
+                    }
+                    else
+                    {
+                        await arg.Channel.SendMessageAsync("The user must be mentioned with @ for run and must be a space between the command and user mentioned!", false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                        CLog.LogWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - !++ Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!-- command
+            try
+            {
+
+                if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "--"))
+                {
+                    if (chatMessage.Contains(" "))
+                    {
+                        if (chatMessage.Contains("<"))
+                        {
+                            string[] cmd = chatMessage.Split(' ');
+                            string b = string.Empty;
+
+                            for (int i = 0; i < cmd[1].Length; i++)
                             {
-                                string[] cmd = chatMessage.Split(' ');
+                                if (Char.IsDigit(cmd[1][i]))
+                                    b += cmd[1][i];
+                            }
 
-
+                            try
+                            {
+                                string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                                string[] u = eUser.Split('#');
+                                string mUser = u[0];
                                 string[] rUserPointsLines = File.ReadAllLines(user_Points);
                                 string UserPoints = File.ReadAllText(user_Points);
                                 List<string> pL = new List<string>();
@@ -854,7 +763,7 @@ win a coin and position of players is reseted and all will start from middle of 
                                     if (line.Length > 0)
                                     {
 
-                                        if (line.Contains(cmd[1]))
+                                        if (line.Contains(mUser))
                                         {
                                             string[] userline = line.Split('|');
                                             if (userline[0] != m.Author.Username)
@@ -864,20 +773,20 @@ win a coin and position of players is reseted and all will start from middle of 
                                                 {
                                                     int p = points - 1;
                                                     pL.Remove(line);
-                                                    string l = cmd[1] + "|" + p;
+                                                    string l = mUser + "|" + p;
                                                     pL.Add(l);
                                                     p = 0;
-                                                    await arg.Channel.SendMessageAsync("****" + m.Author.Username + "**** removed a Yanni point from ****" + cmd[1] + "**** !", false, null);
+                                                    await arg.Channel.SendMessageAsync("****" + m.Author.Username + "**** removed a Yanni point from ****" + mUser + "**** !", false, null);
                                                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                    logWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + cmd[1] + " !");
-                                                    CLog.LogWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + cmd[1] + " !");
+                                                    logWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + mUser + " !");
+                                                    CLog.LogWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + mUser + " !");
                                                 }
                                                 else
                                                 {
-                                                    await arg.Channel.SendMessageAsync(" ****" + cmd[1] + "**** has no points anymore !", false, null);
+                                                    await arg.Channel.SendMessageAsync(" ****" + mUser + "**** has no points anymore !", false, null);
                                                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                    logWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
-                                                    CLog.LogWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
+                                                    logWrite("[" + date + "]" + mUser + " has no points anymore !");
+                                                    CLog.LogWrite("[" + date + "]" + mUser + " has no points anymore !");
                                                 }
                                             }
                                             else
@@ -893,32 +802,569 @@ win a coin and position of players is reseted and all will start from middle of 
 
                                     }
                                 }
-                                if (!UserPoints.Contains(cmd[1]))
+                                if (!UserPoints.Contains(mUser))
                                 {
 
                                     if (c == false)
                                     {
 
-                                        await arg.Channel.SendMessageAsync(" ****" + cmd[1] + "**** has no points anymore !", false, null);
+                                        await arg.Channel.SendMessageAsync(" ****" + mUser + "**** has no points anymore !", false, null);
                                         date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
-                                        CLog.LogWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
+                                        logWrite("[" + date + "]" + mUser + " has no points anymore !");
+                                        CLog.LogWrite("[" + date + "]" + mUser + " has no points anymore !");
                                         c = true;
                                     }
                                 }
                                 string finalPointsList = string.Join(Environment.NewLine, pL);
                                 File.WriteAllText(user_Points, finalPointsList);
 
-
                             }
-
+                            catch
+                            {
+                                await arg.Channel.SendMessageAsync("Mentioned user must be online for takeing points!", false, null);
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "]Mentioned user must be online for takeing points!");
+                                CLog.LogWrite("[" + date + "]Mentioned user must be online for takeing points!");
+                            }
                         }
                         else
                         {
-                            await arg.Channel.SendMessageAsync("The user must be mentioned with @ for run and must be a space between the command and user mentioned!", false, null);
+                            string[] cmd = chatMessage.Split(' ');
+
+
+                            string[] rUserPointsLines = File.ReadAllLines(user_Points);
+                            string UserPoints = File.ReadAllText(user_Points);
+                            List<string> pL = new List<string>();
+
+
+                            foreach (var user in rUserPointsLines)
+                            {
+
+                                pL.Add(user);
+                            }
+
+                            bool c = false;
+                            foreach (var line in pL.ToArray())
+                            {
+
+                                if (line.Length > 0)
+                                {
+
+                                    if (line.Contains(cmd[1]))
+                                    {
+                                        string[] userline = line.Split('|');
+                                        if (userline[0] != m.Author.Username)
+                                        {
+                                            int points = Convert.ToInt32(userline[1]);
+                                            if (points != 0)
+                                            {
+                                                int p = points - 1;
+                                                pL.Remove(line);
+                                                string l = cmd[1] + "|" + p;
+                                                pL.Add(l);
+                                                p = 0;
+                                                await arg.Channel.SendMessageAsync("****" + m.Author.Username + "**** removed a Yanni point from ****" + cmd[1] + "**** !", false, null);
+                                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                                logWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + cmd[1] + " !");
+                                                CLog.LogWrite("[" + date + "]" + m.Author.Username + " removed a Yanni point from " + cmd[1] + " !");
+                                            }
+                                            else
+                                            {
+                                                await arg.Channel.SendMessageAsync(" ****" + cmd[1] + "**** has no points anymore !", false, null);
+                                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                                logWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
+                                                CLog.LogWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            await arg.Channel.SendMessageAsync("You cannot remove points from yourself, ****" + m.Author.Username + "**** !", false, null);
+                                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                            logWrite("[" + date + "][BOT] You cannot remove points from yourself, ****" + m.Author.Username + "**** !");
+                                            CLog.LogWrite("[" + date + "][BOT] You cannot remove points from yourself, ****" + m.Author.Username + "**** !");
+                                        }
+
+                                    }
+
+
+                                }
+                            }
+                            if (!UserPoints.Contains(cmd[1]))
+                            {
+
+                                if (c == false)
+                                {
+
+                                    await arg.Channel.SendMessageAsync(" ****" + cmd[1] + "**** has no points anymore !", false, null);
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
+                                    CLog.LogWrite("[" + date + "]" + cmd[1] + " has no points anymore !");
+                                    c = true;
+                                }
+                            }
+                            string finalPointsList = string.Join(Environment.NewLine, pL);
+                            File.WriteAllText(user_Points, finalPointsList);
+
+
+                        }
+
+                    }
+                    else
+                    {
+                        await arg.Channel.SendMessageAsync("The user must be mentioned with @ for run and must be a space between the command and user mentioned!", false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                        CLog.LogWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!rank command
+            try
+            {
+
+                if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "r"))
+                {
+                    string[] rUserPointsLines = File.ReadAllLines(user_Points);
+                    string rUserPints = File.ReadAllText(user_Points);
+                    if (chatMessage.Contains(" "))
+                    {
+                        string[] mu = chatMessage.Split(' ');
+                        if (mu[0] == cmdPrefix + "r")
+                        {
+                            if (mu[1] != null)
+                            {
+                                if (mu[1].Contains("<"))
+                                {
+                                    string b = string.Empty;
+
+                                    for (int i = 0; i < mu[1].Length; i++)
+                                    {
+                                        if (Char.IsDigit(mu[1][i]))
+                                            b += mu[1][i];
+                                    }
+                                    try
+                                    {
+                                        string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
+                                        string[] u = eUser.Split('#');
+                                        string mUser = u[0];
+
+
+                                        string user = string.Empty;
+
+                                        foreach (var line in rUserPointsLines)
+                                        {
+
+                                            if (line.Contains(mUser))
+                                            {
+                                                string[] rank = line.Split('|');
+
+                                                user = "****" + rank[0] + "****, has ****" + rank[1] + "**** Yanni points!";
+                                            }
+
+                                        }
+
+                                        if (!rUserPints.Contains(mUser))
+                                        {
+                                            user = "****" + mUser + "****, has ****0**** Yanni points!";
+                                        }
+
+                                        await arg.Channel.SendMessageAsync(user, false, null);
+                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                        logWrite("[" + date + "][BOT]: " + user);
+                                        CLog.LogWrite("[" + date + "][BOT]: " + user);
+
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                        CLog.LogWriteError("[" + date + "]Error - rank Command: " + ex.ToString());
+                                    }
+                                }
+                                else
+                                {
+
+                                    string user = string.Empty;
+
+                                    foreach (var line in rUserPointsLines)
+                                    {
+
+                                        if (line.Contains(mu[1]))
+                                        {
+                                            string[] rank = line.Split('|');
+
+                                            user = "****" + rank[0] + "****, has ****" + rank[1] + "**** Yanni points!";
+                                        }
+
+                                    }
+
+                                    if (!rUserPints.Contains(mu[1]))
+                                    {
+                                        user = "****" + mu[1] + "****, has ****0**** Yanni points!";
+                                    }
+
+                                    await arg.Channel.SendMessageAsync(user, false, null);
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT]: " + user);
+                                    CLog.LogWrite("[" + date + "][BOT]: " + user);
+
+
+                                }
+                            }
+                            else
+                            {
+
+
+
+                                string user = string.Empty;
+
+                                foreach (var line in rUserPointsLines)
+                                {
+
+                                    if (line.Contains(m.Author.Username))
+                                    {
+                                        string[] rank = line.Split('|');
+
+                                        user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
+                                    }
+
+
+                                }
+                                if (!rUserPints.Contains(m.Author.Username))
+                                {
+                                    user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
+                                }
+
+                                await arg.Channel.SendMessageAsync(user, false, null);
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "][BOT]: " + user);
+                                CLog.LogWrite("[" + date + "][BOT]: " + user);
+                            }
+                        }
+                        else
+                        {
+                            await arg.Channel.SendMessageAsync("The command for Yanni points rank must start with !r", false, null);
                             date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                            logWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
-                            CLog.LogWrite("[" + date + "]The user must be mentioned with @ for run and must be a space between the command and user mentioned!");
+                            logWrite("[" + date + "][BOT]: The command for Yanni points rank must start with !r");
+                            CLog.LogWrite("[" + date + "][BOT]: The command for Yanni points rank must start with !r");
+                        }
+                    }
+                    else
+                    {
+
+
+
+                        string user = string.Empty;
+
+                        foreach (var line in rUserPointsLines)
+                        {
+
+                            if (line.Contains(m.Author.Username))
+                            {
+                                string[] rank = line.Split('|');
+
+                                user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
+                            }
+
+                        }
+
+
+                        if (!rUserPints.Contains(m.Author.Username))
+                        {
+                            user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
+                        }
+                        await arg.Channel.SendMessageAsync(user, false, null);
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT]: " + user);
+                        CLog.LogWrite("[" + date + "][BOT]: " + user);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - rank Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+            //!t10 command
+            try
+            {
+
+                if (chatMessage != null && chatMessage == cmdPrefix + "t10")
+                {
+                    string[] rUserPointsLines = File.ReadAllLines(user_Points);
+                    string rUserPints = File.ReadAllText(user_Points);
+                    List<string> pL = new List<string>();
+                    foreach (var line in rUserPointsLines)
+                    {
+                        string[] t = line.Split('|');
+                        pL.Add(t[1] + "|" + t[0]);
+                    }
+
+                    if (!chatMessage.Contains(" "))
+                    {
+                        pL.Sort((a, b) => b.CompareTo(a));
+                        string outs = string.Empty;
+                        int count = 0;
+                        foreach (var item in pL.ToArray())
+                        {
+
+                            string[] t = item.Split('|');
+                            count++;
+                            if (count <= 10 && t[0] != "0")
+                            {
+                                outs += "****" + t[1] + "**** has ****" + t[0] + "****" + Environment.NewLine;
+                            }
+                        }
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Top 10 Yanni points list: " + Environment.NewLine + outs);
+                        await arg.Channel.SendMessageAsync("**__Top 10 Yanni points list:__** " + Environment.NewLine + Environment.NewLine + outs, false, null);
+                        CLog.LogWrite("[" + date + "][BOT] Top 10 Yanni points list: " + Environment.NewLine + outs);
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - rank Command: " + e.ToString());
+            }
+            //--------------------------------------------
+            #endregion
+
+            #region 8Ball by CodingWithScott
+            //!8ball command
+            try
+            {
+
+                if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "8ball"))
+                {
+                    if (chatMessage.Contains("?"))
+                    {
+
+                        List<string> randomM = new List<string>();
+                        if (File.Exists(ballAnswer))
+                        {
+                            bool c = false;
+                            string[] rand_list = File.ReadAllLines(ballAnswer);
+                            foreach (var line in rand_list)
+                            {
+                                if (line.Length > 0)
+                                {
+                                    randomM.Add(line);
+                                }
+                                else
+                                {
+                                    if (c == false)
+                                    {
+                                        logWrite("[" + date + "][BOT] 8Ball - Answers files is empty! You need to add something");
+                                        c = true;
+                                    }
+                                }
+                            }
+                            int index = r.Next(randomM.Count);
+                            string rand = randomM[index];
+                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                            logWrite("[" + date + "][BOT] Scott says: " + rand);
+                            await arg.Channel.SendMessageAsync("****Scott**** says: " + rand, false, null);
+                            CLog.LogWrite("[" + date + "][BOT] Scott says: " + rand);
+                        }
+                    }
+                    else
+                    {
+                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        logWrite("[" + date + "][BOT] Your question must contain ? for Scott to answer!");
+                        await arg.Channel.SendMessageAsync("Your question must contain ? for ****Scott**** to answer!", false, null);
+                        CLog.LogWrite("[" + date + "][BOT] Your question must contain ? for Scott to answer!");
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                CLog.LogWriteError("[" + date + "]Error - !8ball Command: " + e.ToString());
+            }
+            //--------------------------------------------
+
+
+            #endregion
+
+            #region Secret Key Game by Scott
+            if (sGame == "1")
+            {
+                //movement commands
+                try
+                {
+                    if (channelID != "")
+                    {
+                        ulong id = 0;
+
+                        if (sChannel == "1")
+                        {
+                            id = Convert.ToUInt64(channelID);
+                        }
+                        else
+                        {
+                            id = arg.Channel.Id;
+                        }
+
+                        if (chatMessage != null && chatMessage == cmdPrefix + "e")
+                        {
+                            if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
+                            {
+                                GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "east", PLAYER_DATA, discord_serverID);
+                                if (!GameDisplay.Contains("Win"))
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite(GameDisplay);
+                                    await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                                }
+                                else
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
+                                    await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
+                                }
+                            }
+                            else
+                            {
+
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
+                                await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
+                            }
+
+                        }
+                        else if (chatMessage != null && chatMessage == cmdPrefix + "w")
+                        {
+                            if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
+                            {
+                                GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "west", PLAYER_DATA, discord_serverID);
+                                if (!GameDisplay.Contains("Win"))
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite(GameDisplay);
+                                    await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                                }
+                                else
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
+                                    await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
+                                }
+                            }
+                            else
+                            {
+
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
+                                await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
+                            }
+                        }
+                        else if (chatMessage != null && chatMessage == cmdPrefix + "n")
+                        {
+                            if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
+                            {
+                                GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "north", PLAYER_DATA, discord_serverID);
+                                if (!GameDisplay.Contains("Win"))
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite(GameDisplay);
+                                    await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                                }
+                                else
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
+                                    await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
+                                }
+                            }
+                            else
+                            {
+
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
+                                await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
+                            }
+
+                        }
+                        else if (chatMessage != null && chatMessage == cmdPrefix + "s")
+                        {
+                            if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
+                            {
+                                GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "south", PLAYER_DATA, discord_serverID);
+                                if (!GameDisplay.Contains("Win"))
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite(GameDisplay);
+                                    await arg.Channel.SendMessageAsync(GameDisplay, false, null);
+                                }
+                                else
+                                {
+                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
+                                    await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
+                                }
+                            }
+                            else
+                            {
+                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
+                                await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                    logWrite("[" + date + "] Game East error: " + ex.ToString());
+                }
+
+                //--------------------------------
+
+                //!s10 command
+                try
+                {
+                    if (chatMessage != null && chatMessage == cmdPrefix + "s10")
+                    {
+                        string[] rUserSP = File.ReadAllLines(PLAYER_DATA);
+                        List<string> pL = new List<string>();
+                        foreach (var line in rUserSP)
+                        {
+                            string[] t = line.Split('|');
+                            t[2] = t[2].Trim();
+                            pL.Add(t[2] + "|" + t[0]);
+                        }
+
+                        if (!chatMessage.Contains(" "))
+                        {
+                            pL.Sort((a, b) => b.CompareTo(a));
+                            string outs = string.Empty;
+                            int count = 0;
+                            foreach (var item in pL.ToArray())
+                            {
+
+                                string[] t = item.Split('|');
+                                count++;
+                                if (count <= 10 && t[0] != "0")
+                                {
+                                    outs += "****" + t[1] + "**** has ****" + t[0] + "**** coins" + Environment.NewLine;
+                                }
+                            }
+                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                            logWrite("[" + date + "][BOT] Top 10 Secret Key Game coins list: " + Environment.NewLine + outs);
+                            await arg.Channel.SendMessageAsync("**__Top 10 Secret Key Game coins list:__** " + Environment.NewLine + Environment.NewLine + outs, false, null);
+                            CLog.LogWrite("[" + date + "][BOT] Top 10 Secret Key Game coins list: " + Environment.NewLine + outs);
                         }
 
                     }
@@ -926,22 +1372,24 @@ win a coin and position of players is reseted and all will start from middle of 
                 catch (Exception e)
                 {
                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - botname Command: " + e.ToString());
+                    CLog.LogWriteError("[" + date + "]Error - secret_Grank Command: " + e.ToString());
                 }
                 //--------------------------------------------
 
-                //!rank command
+
+
+                //!c rank Secret Game command
                 try
                 {
 
-                    if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "r"))
+                    if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "c"))
                     {
-                        string[] rUserPointsLines = File.ReadAllLines(user_Points);
-                        string rUserPints = File.ReadAllText(user_Points);
+                        string[] rUserCoinsLines = File.ReadAllLines(PLAYER_DATA);
+                        string rUserCoins = File.ReadAllText(PLAYER_DATA);
                         if (chatMessage.Contains(" "))
                         {
                             string[] mu = chatMessage.Split(' ');
-                            if (mu[0] == cmdPrefix + "r")
+                            if (mu[0] == cmdPrefix + "c")
                             {
                                 if (mu[1] != null)
                                 {
@@ -963,21 +1411,21 @@ win a coin and position of players is reseted and all will start from middle of 
 
                                             string user = string.Empty;
 
-                                            foreach (var line in rUserPointsLines)
+                                            foreach (var line in rUserCoinsLines)
                                             {
 
                                                 if (line.Contains(mUser))
                                                 {
                                                     string[] rank = line.Split('|');
 
-                                                    user = "****" + rank[0] + "****, has ****" + rank[1] + "**** Yanni points!";
+                                                    user = "****" + rank[0] + "****, has ****" + rank[2] + "**** coins!";
                                                 }
 
                                             }
 
-                                            if (!rUserPints.Contains(mUser))
+                                            if (!rUserCoins.Contains(mUser))
                                             {
-                                                user = "****" + mUser + "****, has ****0**** Yanni points!";
+                                                user = "****" + mUser + "****, has ****0**** Coins!";
                                             }
 
                                             await arg.Channel.SendMessageAsync(user, false, null);
@@ -989,61 +1437,30 @@ win a coin and position of players is reseted and all will start from middle of 
                                         catch (Exception ex)
                                         {
                                             date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                            CLog.LogWriteError("[" + date + "]Error - rank Command: " + ex.ToString());
+                                            CLog.LogWriteError("[" + date + "]Error - Game rank Command: " + ex.ToString());
                                         }
-                                    }
-                                    else
-                                    {
-
-                                        string user = string.Empty;
-
-                                        foreach (var line in rUserPointsLines)
-                                        {
-
-                                            if (line.Contains(mu[1]))
-                                            {
-                                                string[] rank = line.Split('|');
-
-                                                user = "****" + rank[0] + "****, has ****" + rank[1] + "**** Yanni points!";
-                                            }
-
-                                        }
-
-                                        if (!rUserPints.Contains(mu[1]))
-                                        {
-                                            user = "****" + mu[1] + "****, has ****0**** Yanni points!";
-                                        }
-
-                                        await arg.Channel.SendMessageAsync(user, false, null);
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "][BOT]: " + user);
-                                        CLog.LogWrite("[" + date + "][BOT]: " + user);
-
-
                                     }
                                 }
                                 else
                                 {
 
-
-
                                     string user = string.Empty;
 
-                                    foreach (var line in rUserPointsLines)
+                                    foreach (var line in rUserCoinsLines)
                                     {
 
                                         if (line.Contains(m.Author.Username))
                                         {
                                             string[] rank = line.Split('|');
 
-                                            user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
+                                            user = "****" + rank[0] + "****, you have ****" + rank[2] + "**** coins!";
                                         }
 
 
                                     }
-                                    if (!rUserPints.Contains(m.Author.Username))
+                                    if (!rUserCoins.Contains(m.Author.Username))
                                     {
-                                        user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
+                                        user = "****" + m.Author.Username + "****, has ****0**** coins!";
                                     }
 
                                     await arg.Channel.SendMessageAsync(user, false, null);
@@ -1054,35 +1471,33 @@ win a coin and position of players is reseted and all will start from middle of 
                             }
                             else
                             {
-                                await arg.Channel.SendMessageAsync("The command for Yanni points rank must start with !r", false, null);
+                                await arg.Channel.SendMessageAsync("The command for Secret Key Game rank coins for user must contain !c", false, null);
                                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                logWrite("[" + date + "][BOT]: The command for Yanni points rank must start with !r");
-                                CLog.LogWrite("[" + date + "][BOT]: The command for Yanni points rank must start with !r");
+                                logWrite("[" + date + "][BOT]: The command for Secret Key Game rank coins for user must contain !c");
+                                CLog.LogWrite("[" + date + "][BOT]: The command for Secret Key Game rank coins for user must contain !c");
                             }
                         }
                         else
                         {
 
-
-
                             string user = string.Empty;
 
-                            foreach (var line in rUserPointsLines)
+                            foreach (var line in rUserCoinsLines)
                             {
 
                                 if (line.Contains(m.Author.Username))
                                 {
                                     string[] rank = line.Split('|');
 
-                                    user = "****" + rank[0] + "****, you have ****" + rank[1] + "**** Yanni points!";
+                                    user = "****" + rank[0] + "****, you have ****" + rank[2] + "**** coins!";
                                 }
 
                             }
 
 
-                            if (!rUserPints.Contains(m.Author.Username))
+                            if (!rUserCoins.Contains(m.Author.Username))
                             {
-                                user = "****" + m.Author.Username + "****, has ****0**** Yanni points!";
+                                user = "****" + m.Author.Username + "****, has ****0**** coins!";
                             }
                             await arg.Channel.SendMessageAsync(user, false, null);
                             date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
@@ -1094,429 +1509,10 @@ win a coin and position of players is reseted and all will start from middle of 
                 catch (Exception e)
                 {
                     date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - rank Command: " + e.ToString());
+                    CLog.LogWriteError("[" + date + "]Error - Game rank Command: " + e.ToString());
                 }
                 //--------------------------------------------
 
-                //!t10 command
-                try
-                {
-
-                    if (chatMessage != null && chatMessage == cmdPrefix + "t10")
-                    {
-                        string[] rUserPointsLines = File.ReadAllLines(user_Points);
-                        string rUserPints = File.ReadAllText(user_Points);
-                        List<string> pL = new List<string>();
-                        foreach (var line in rUserPointsLines)
-                        {
-                            string[] t = line.Split('|');
-                            pL.Add(t[1] + "|" + t[0]);
-                        }
-
-                        if (!chatMessage.Contains(" "))
-                        {
-                            pL.Sort((a, b) => b.CompareTo(a));
-                            string outs = string.Empty;
-                            int count = 0;
-                            foreach (var item in pL.ToArray())
-                            {
-
-                                string[] t = item.Split('|');
-                                count++;
-                                if (count <= 10 && t[0] != "0")
-                                {
-                                    outs += "****" + t[1] + "**** has ****" + t[0] + "****" + Environment.NewLine;
-                                }
-                            }
-                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                            logWrite("[" + date + "][BOT] Top 10 Yanni points list: " + Environment.NewLine + outs);
-                            await arg.Channel.SendMessageAsync("**__Top 10 Yanni points list:__** " + Environment.NewLine + Environment.NewLine + outs, false, null);
-                            CLog.LogWrite("[" + date + "][BOT] Top 10 Yanni points list: " + Environment.NewLine + outs);
-                        }
-
-                    }
-                }
-                catch (Exception e)
-                {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - rank Command: " + e.ToString());
-                }
-                //--------------------------------------------
-                #endregion
-
-                #region 8Ball by CodingWithScott
-                //!8ball command
-                try
-                {
-
-                    if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "8ball"))
-                    {
-                        if (chatMessage.Contains("?"))
-                        {
-
-                            List<string> randomM = new List<string>();
-                            if (File.Exists(ballAnswer))
-                            {
-                                bool c = false;
-                                string[] rand_list = File.ReadAllLines(ballAnswer);
-                                foreach (var line in rand_list)
-                                {
-                                    if (line.Length > 0)
-                                    {
-                                        randomM.Add(line);
-                                    }
-                                    else
-                                    {
-                                        if (c == false)
-                                        {
-                                            logWrite("[" + date + "][BOT] 8Ball - Answers files is empty! You need to add something");
-                                            c = true;
-                                        }
-                                    }
-                                }
-                                int index = r.Next(randomM.Count);
-                                string rand = randomM[index];
-                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                logWrite("[" + date + "][BOT] Scott says: " + rand);
-                                await arg.Channel.SendMessageAsync("****Scott**** says: " + rand, false, null);
-                                CLog.LogWrite("[" + date + "][BOT] Scott says: " + rand);
-                            }
-                        }
-                        else
-                        {
-                            date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                            logWrite("[" + date + "][BOT] Your question must contain ? for Scott to answer!");
-                            await arg.Channel.SendMessageAsync("Your question must contain ? for ****Scott**** to answer!", false, null);
-                            CLog.LogWrite("[" + date + "][BOT] Your question must contain ? for Scott to answer!");
-                        }
-
-                    }
-                }
-                catch (Exception e)
-                {
-                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                    CLog.LogWriteError("[" + date + "]Error - !8ball Command: " + e.ToString());
-                }
-                //--------------------------------------------
-
-
-                #endregion
-
-                #region Secret Key Game by Scott
-                if (sGame == "1")
-                {
-                    //movement commands
-                    try
-                    {
-                        if (channelID != "")
-                        {
-                            ulong id = 0;
-
-                            if (sChannel == "1")
-                            {
-                                id = Convert.ToUInt64(channelID);
-                            }
-                            else
-                            {
-                                id = arg.Channel.Id;
-                            }
-
-                            if (chatMessage != null && chatMessage == cmdPrefix + "e")
-                            {
-                                if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
-                                {
-                                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "east", PLAYER_DATA, discord_serverID);
-                                    if (!GameDisplay.Contains("Win"))
-                                    {
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite(GameDisplay);
-                                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
-                                    }
-                                    else
-                                    {
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
-                                        await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
-                                    }
-                                }
-                                else
-                                {
-
-                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
-                                    await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
-                                }
-
-                            }
-                            else if (chatMessage != null && chatMessage == cmdPrefix + "w")
-                            {
-                                if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
-                                {
-                                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "west", PLAYER_DATA, discord_serverID);
-                                    if (!GameDisplay.Contains("Win"))
-                                    { 
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite(GameDisplay);
-                                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
-                                    }
-                                    else
-                                    {
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
-                                        await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
-                                    }
-                                }
-                                else
-                                {
-
-                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
-                                    await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
-                                }
-                            }
-                            else if (chatMessage != null && chatMessage == cmdPrefix + "n")
-                            {
-                                if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
-                                {
-                                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "north", PLAYER_DATA, discord_serverID);
-                                    if (!GameDisplay.Contains("Win"))
-                                    {
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite(GameDisplay);
-                                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
-                                    }
-                                    else
-                                    {
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
-                                        await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
-                                    }
-                                }
-                                else
-                                {
-
-                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
-                                    await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
-                                }
-
-                            }
-                            else if (chatMessage != null && chatMessage == cmdPrefix + "s")
-                            {
-                                if (arg.Channel.ToString() == _client.GetChannel(id).ToString())
-                                {
-                                    GameDisplay = scott_game_engine.Game_Play(m.Author.Username, "south", PLAYER_DATA, discord_serverID);
-                                    if (!GameDisplay.Contains("Win"))
-                                    {
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite(GameDisplay);
-                                        await arg.Channel.SendMessageAsync(GameDisplay, false, null);
-                                    }
-                                    else
-                                    {
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "][BOT] Congratulation " + m.Author.Username + " you have won the game!");
-                                        await arg.Channel.SendMessageAsync("Congratulation ****" + m.Author.Username + "****, you have found the Secret Key! Therefore I give you a mistic coin.", false, null);
-                                    }
-                                }
-                                else
-                                {
-                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    logWrite("[" + date + "][BOT] To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!");
-                                    await arg.Channel.SendMessageAsync("To play The Secret Key Game you need to go at ****" + _client.GetChannel(id).ToString() + "**** channel!", false, null);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        logWrite("[" + date + "] Game East error: " + ex.ToString());
-                    }
-
-                    //--------------------------------
-
-                    //!s10 command
-                    try
-                    {
-                        if (chatMessage != null && chatMessage == cmdPrefix + "s10")
-                        {
-                            string[] rUserSP = File.ReadAllLines(PLAYER_DATA);
-                            List<string> pL = new List<string>();
-                            foreach (var line in rUserSP)
-                            {
-                                string[] t = line.Split('|');
-                                t[2] = t[2].Trim();
-                                pL.Add(t[2] + "|" + t[0]);
-                            }
-                             
-                            if (!chatMessage.Contains(" "))
-                            {
-                                pL.Sort((a, b) => b.CompareTo(a));
-                                string outs = string.Empty;
-                                int count = 0;
-                                foreach (var item in pL.ToArray())
-                                {
-
-                                    string[] t = item.Split('|');
-                                    count++;
-                                    if (count <= 10 && t[0] != "0")
-                                    {
-                                        outs += "****" + t[1] + "**** has ****" + t[0] + "**** coins" + Environment.NewLine;
-                                    }
-                                }
-                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                logWrite("[" + date + "][BOT] Top 10 Secret Key Game coins list: " + Environment.NewLine + outs);
-                                await arg.Channel.SendMessageAsync("**__Top 10 Secret Key Game coins list:__** " + Environment.NewLine + Environment.NewLine + outs, false, null);
-                                CLog.LogWrite("[" + date + "][BOT] Top 10 Secret Key Game coins list: " + Environment.NewLine + outs);
-                            }
-
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        CLog.LogWriteError("[" + date + "]Error - secret_Grank Command: " + e.ToString());
-                    }
-                    //--------------------------------------------
-
-
-
-                    //!c rank Secret Game command
-                    try
-                    {
-
-                        if (chatMessage != null && chatMessage.StartsWith(cmdPrefix + "c"))
-                        {
-                            string[] rUserCoinsLines = File.ReadAllLines(PLAYER_DATA);
-                            string rUserCoins = File.ReadAllText(PLAYER_DATA);
-                            if (chatMessage.Contains(" "))
-                            {
-                                string[] mu = chatMessage.Split(' ');
-                                if (mu[0] == cmdPrefix + "c")
-                                {
-                                    if (mu[1] != null)
-                                    {
-                                        if (mu[1].Contains("<"))
-                                        {
-                                            string b = string.Empty;
-
-                                            for (int i = 0; i < mu[1].Length; i++)
-                                            {
-                                                if (Char.IsDigit(mu[1][i]))
-                                                    b += mu[1][i];
-                                            }
-                                            try
-                                            {
-                                                string eUser = _client.GetUser(Convert.ToUInt64(b)).ToString();
-                                                string[] u = eUser.Split('#');
-                                                string mUser = u[0];
-
-
-                                                string user = string.Empty;
-
-                                                foreach (var line in rUserCoinsLines)
-                                                {
-
-                                                    if (line.Contains(mUser))
-                                                    {
-                                                        string[] rank = line.Split('|');
-
-                                                        user = "****" + rank[0] + "****, has ****" + rank[2] + "**** coins!";
-                                                    }
-
-                                                }
-
-                                                if (!rUserCoins.Contains(mUser))
-                                                {
-                                                    user = "****" + mUser + "****, has ****0**** Coins!";
-                                                }
-
-                                                await arg.Channel.SendMessageAsync(user, false, null);
-                                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                logWrite("[" + date + "][BOT]: " + user);
-                                                CLog.LogWrite("[" + date + "][BOT]: " + user);
-
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                                CLog.LogWriteError("[" + date + "]Error - Game rank Command: " + ex.ToString());
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-
-                                        string user = string.Empty;
-
-                                        foreach (var line in rUserCoinsLines)
-                                        {
-
-                                            if (line.Contains(m.Author.Username))
-                                            {
-                                                string[] rank = line.Split('|');
-
-                                                user = "****" + rank[0] + "****, you have ****" + rank[2] + "**** coins!";
-                                            }
-
-
-                                        }
-                                        if (!rUserCoins.Contains(m.Author.Username))
-                                        {
-                                            user = "****" + m.Author.Username + "****, has ****0**** coins!";
-                                        }
-
-                                        await arg.Channel.SendMessageAsync(user, false, null);
-                                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                        logWrite("[" + date + "][BOT]: " + user);
-                                        CLog.LogWrite("[" + date + "][BOT]: " + user);
-                                    }
-                                }
-                                else
-                                {
-                                    await arg.Channel.SendMessageAsync("The command for Secret Key Game rank coins for user must contain !c", false, null);
-                                    date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    logWrite("[" + date + "][BOT]: The command for Secret Key Game rank coins for user must contain !c");
-                                    CLog.LogWrite("[" + date + "][BOT]: The command for Secret Key Game rank coins for user must contain !c");
-                                }
-                            }
-                            else
-                            {
-
-                                string user = string.Empty;
-
-                                foreach (var line in rUserCoinsLines)
-                                {
-
-                                    if (line.Contains(m.Author.Username))
-                                    {
-                                        string[] rank = line.Split('|');
-
-                                        user = "****" + rank[0] + "****, you have ****" + rank[2] + "**** coins!";
-                                    }
-
-                                }
-
-
-                                if (!rUserCoins.Contains(m.Author.Username))
-                                {
-                                    user = "****" + m.Author.Username + "****, has ****0**** coins!";
-                                }
-                                await arg.Channel.SendMessageAsync(user, false, null);
-                                date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                logWrite("[" + date + "][BOT]: " + user);
-                                CLog.LogWrite("[" + date + "][BOT]: " + user);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        CLog.LogWriteError("[" + date + "]Error - Game rank Command: " + e.ToString());
-                    }
-                    //--------------------------------------------
-                
                 #endregion
             }
         }
@@ -1535,14 +1531,16 @@ win a coin and position of players is reseted and all will start from middle of 
                 logWrite("[" + date + "][BOT]INFO: Server requested a reconnect");
                 CLog.LogWrite("[" + date + "][BOT]INFO: Server requested a reconnect");
 
-            }else if (msg.ToString().Contains("Disconnected"))
+            }
+            else if (msg.ToString().Contains("Disconnected"))
             {
                 this.Dispatcher.Invoke(() =>
                 {
                     statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/red_dot.png"));
                     startBotBTN.Content = "START";
                 });
-            }else if (msg.ToString().Contains("Ready"))
+            }
+            else if (msg.ToString().Contains("Ready"))
             {
                 Thread.Sleep(50);
                 string[] cUser = _client.CurrentUser.ToString().Split('#');
@@ -1607,7 +1605,7 @@ win a coin and position of players is reseted and all will start from middle of 
                 statIMG.Source = new BitmapImage(new Uri("pack://application:,,,/Resources/red_dot.png"));
                 date = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                 startBotBTN.Content = "START";
-               //temporary disable
+                //temporary disable
                 //logWrite("[" + date + "] Internet is down! Bot will be alive after internet connection is up!");
                 //CLog.LogWrite("[" + date + "] Internet is down! Bot will be alive after internet connection is up!");
             }
@@ -1778,7 +1776,7 @@ win a coin and position of players is reseted and all will start from middle of 
             aB = new about();
             aB.ShowDialog();
         }
-        
+
 
         /// <summary>
         /// opening settings window
