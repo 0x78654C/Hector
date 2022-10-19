@@ -87,7 +87,7 @@
                 </adorners:Watermark.TextStyle>
             </PasswordBox>
             <CheckBox Name="startWinCKB" Foreground="#bfbec2" Content="Open on Windows Startup: OFF" HorizontalAlignment="Left" Margin="75,328,0,0" VerticalAlignment="Top" Checked="startWinCKB_Checked" Unchecked="startWinCKB_Unchecked"/>
-            <TextBox Background="#54515c" Foreground="#bfbec2" FontSize="14" DataObject.Pasting="TextBoxPasting" adorners:Watermark.Text="Enter a custom command prefix" TextAlignment="Center" Name="cmdPrefixXT" HorizontalAlignment="Left" Height="32" Margin="41,170,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="255" PreviewTextInput="cmdPrefixTXT_PreviewTextInput" MaxLength="1">
+            <TextBox Background="#54515c" Foreground="#bfbec2" FontSize="14"  adorners:Watermark.Text="Enter a custom command prefix" TextAlignment="Center" Name="cmdPrefixXT" HorizontalAlignment="Left" Height="32" Margin="41,170,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="255" PreviewTextInput="cmdPrefixTXT_PreviewTextInput" MaxLength="1">
                 <adorners:Watermark.TextStyle>
                     <Style TargetType="{x:Type TextBlock}">
                         <Setter Property="Opacity" Value="0.5" />

@@ -1,20 +1,11 @@
-﻿using System;
+﻿using Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Core;
 namespace Hector
 {
     /// <summary>
@@ -78,7 +69,7 @@ namespace Hector
                 if (line.Length > 0 && line != "test|12|0")
                 {
                     string[] s = line.Split('|');
-                    coinsList.Items.Add(new { User = s[0], Position = s[1], Coins=s[2] });
+                    coinsList.Items.Add(new { User = s[0], Position = s[1], Coins = s[2] });
 
                 }
             }
@@ -155,7 +146,7 @@ namespace Hector
         {
             List<string> uData = new List<string>();
             string[] u_dataList = File.ReadAllLines(user_data);
-            foreach(var line in u_dataList)
+            foreach (var line in u_dataList)
             {
                 string[] user = line.Split('|');
                 uData.Add(user[0] + "|" + user[1] + "|0");
@@ -223,7 +214,7 @@ namespace Hector
         private void activeteGameCKB_Checked(object sender, RoutedEventArgs e)
         {
             Reg.regKey_WriteSubkey(keyName, "sGame", "1");
-            activateGameCKB.Content="Activate Game: ON";
+            activateGameCKB.Content = "Activate Game: ON";
         }
 
         /// <summary>
@@ -270,7 +261,7 @@ namespace Hector
         /// <param name="e"></param>
         private void discordChannelTXT_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            
+
             e.Handled = !IsTextAllowed(e.Text);
         }
 

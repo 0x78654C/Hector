@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Hector
 {
-   public class CommandHandler
+    public class CommandHandler
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
